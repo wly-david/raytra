@@ -1,12 +1,9 @@
 #include<cstdlib>
 #include"hw1.h"
+#include<cassert>
 
 //#define IM_DEBUGGING
 
-myCamera camera;
-Array2D<Rgba> image;
-int height, width;
-vector<mySurface*> objectsList;
 // this is called from the parseSceneFile function, which uses
 // it to get the float from the correspoding position on the line.
 //
@@ -15,10 +12,10 @@ vector<mySurface*> objectsList;
 //
 // you really don't need to know what is going on in here, I think.
 //
-float getTokenAsFloat (string inString, int whichToken)
+double getTokenAsFloat (string inString, int whichToken)
 {
     
-    float thisFloatVal = 0.;    // the return value
+    double thisFloatVal = 0.;    // the return value
     
     if (whichToken == 0) {
         cerr << "error: the first token on a line is a character!" << endl;
@@ -77,10 +74,10 @@ float getTokenAsFloat (string inString, int whichToken)
 // only use "correct" scene files.
 //
 //
-void parseSceneFile (char *filnam)
+void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Surfaces, vector< myLight * > &Lights)
 {
     
-    ifstream inFile(filnam);    // open the file
+    ifstream inFile(filname);    // open the file
     string line;
     
     if (! inFile.is_open ()) {  // if it's not open, error out.
@@ -98,7 +95,10 @@ void parseSceneFile (char *filnam)
     // and each time you load in a new piece of geometry (sphere, triangle, plane)
     // you will set its material to lastMaterialLoaded.
 
-    
+    int num_cams = 0;
+	bool material_exist = false;
+	myMaterial lastMaterialLoaded;
+
     while (! inFile.eof ()) {   // go through every line in the file until finished
         
         getline (inFile, line); // get the line
@@ -114,14 +114,12 @@ void parseSceneFile (char *filnam)
             case 's': {
                 // it's a sphere, load in the parameters
                 
-                float x, y, z, r;
+                double x, y, z, r;
                 x = getTokenAsFloat (line, 1); 
                 y = getTokenAsFloat (line, 2); 
                 z = getTokenAsFloat (line, 3); 
                 r = getTokenAsFloat (line, 4); 
-
-				mySphere *sphere = new mySphere(x, y, z, r);
-				objectsList.push_back(sphere);
+				
                 // build your sphere here from the parameters
                 // i.e. you must call your sphere constructor and set its position
                 // and radius from the above values. You must also put your new
@@ -130,6 +128,10 @@ void parseSceneFile (char *filnam)
                 // mySphereClass *ms = new mySphereClass (x, y, z, r);   // make a new instance of your sphere class
                 // ms->setMaterial (lastMaterialLoaded)
                 // objectsList->push_back (ms);  // objectsList is a global std:vector<surface *> for example.
+				mySphere *sphere = new mySphere(myPoint(x, y, z), r);
+				assert(material_exist);
+				sphere->setMaterial(lastMaterialLoaded);
+				Surfaces.push_back(sphere);
                 
 #ifdef IM_DEBUGGING
                 // if we're debugging, show what we got:
@@ -141,9 +143,18 @@ void parseSceneFile (char *filnam)
             case 't':   // triangle
                 break;
                 
-            case 'p':   // plane
+            case 'p': {  // plane
+				double nx, ny, nz, d;
+                nx = getTokenAsFloat (line, 1);
+                ny = getTokenAsFloat (line, 2);
+                nz = getTokenAsFloat (line, 3);
+                d = getTokenAsFloat (line, 4);
+				myPlane *plane = new myPlane(myVector(nx, ny, nz), d);
+				assert(material_exist);
+				plane->setMaterial(lastMaterialLoaded);
+				Surfaces.push_back(plane);
                 break;
-                
+			}
             //
             // camera:
             //
@@ -151,30 +162,28 @@ void parseSceneFile (char *filnam)
                 // one trick here: the cameras pixel count (width, height) are integers,
                 // so cast them.
 				
-                float x, y, z, vx, vy, vz, d, iw, ih;
+				++num_cams; // keep track of how many we read in
+
+                double x, y, z, vx, vy, vz, d, iw, ih;
 				int pw, ph;
-                x = getTokenAsFloat (line, 1); 
-                y = getTokenAsFloat (line, 2); 
-                z = getTokenAsFloat (line, 3); 
-                vx = getTokenAsFloat (line, 4); 
-                vy = getTokenAsFloat (line, 5); 
-                vz = getTokenAsFloat (line, 6); 
-                d = getTokenAsFloat (line, 7); 
-                iw = getTokenAsFloat (line, 8); 
-                ih = getTokenAsFloat (line, 9); 
-                pw = (int)getTokenAsFloat (line, 10); 
-                ph = (int)getTokenAsFloat (line, 11); 
-				camera = myCamera(x, y, z, vx, vy, vz, d, iw, ih, pw, ph);
-				image.resizeErase(ph, pw);
-				height = ph;
-				width = pw;
+                x = getTokenAsFloat (line, 1);
+                y = getTokenAsFloat (line, 2);
+                z = getTokenAsFloat (line, 3);
+                vx = getTokenAsFloat (line, 4);
+                vy = getTokenAsFloat (line, 5);
+                vz = getTokenAsFloat (line, 6);
+                d = getTokenAsFloat (line, 7);
+                iw = getTokenAsFloat (line, 8);
+                ih = getTokenAsFloat (line, 9);
+                pw = (int)getTokenAsFloat (line, 10);
+                ph = (int)getTokenAsFloat (line, 11);
+				camera.init(myPoint(x,y,z), myVector(vx, vy, vz), d, iw, ih, pw, ph);
 #ifdef IM_DEBUGGING
                 // if we're debugging, show what we got:
                 cout << "got a camera with ";
                 cout << "parameters: " << x << " " << y << " " << z << " " 
 					<< vx << " "  << vy << " "  << vz << " "  << d << " "  << iw << " "  << ih << " "  << pw << " "  << ph << " " << endl;
 #endif
-				
                 break;
 			}
             //
@@ -185,8 +194,19 @@ void parseSceneFile (char *filnam)
                 // slightly different from the rest, we need to examine the second param,
                 // which is at the third position on the line:
                 switch (line[2]) {
-                    case 'p':   // point light
+                    case 'p': {  // point light
+						double x, y, z, r, g, b;
+						x = getTokenAsFloat (line, 2);
+						y = getTokenAsFloat (line, 3);
+						z = getTokenAsFloat (line, 4);
+						r = getTokenAsFloat (line, 5);
+						g = getTokenAsFloat (line, 6);
+						b = getTokenAsFloat (line, 7);
+						p_light *pointLight = new p_light(myPoint(x,y,z), r, g, b);
+						Lights.push_back(pointLight);
+
                         break;
+					}
                     case 'd':   // directional light
                         break;
                     case 'a':   // ambient light
@@ -199,7 +219,7 @@ void parseSceneFile (char *filnam)
             //
             // materials:
             //
-            case 'm':   // material
+            case 'm':  { // material
                 // the trick here: we should keep a pointer to the last material we read in,
                 // so we can apply it to any subsequent geometry. Say it's called "lastMaterialLoaded"
                 // we migh then do something like this:
@@ -207,8 +227,22 @@ void parseSceneFile (char *filnam)
                 //  1. read in the 10 material parameters: dr, dg, db, sr, sg, sb, r, ir, ig, ib
                 //  2. call lastMaterialLoaded->setMaterial(dr, dg, db,...);
                 //
-                break;
+				material_exist = true;
+                double dr, dg, db, sr, sg, sb, r, ir, ig, ib;
+                dr = getTokenAsFloat (line, 1);
+                dg = getTokenAsFloat (line, 2);
+                db = getTokenAsFloat (line, 3);
+                sr = getTokenAsFloat (line, 4);
+                sg = getTokenAsFloat (line, 5);
+                sb = getTokenAsFloat (line, 6);
+                r = getTokenAsFloat (line, 7);
+                ir = getTokenAsFloat (line, 8);
+                ig = getTokenAsFloat (line, 9);
+                ib = getTokenAsFloat (line, 10);
+				lastMaterialLoaded.set(myVector(dr,dg,db), myVector(sr,sg,sb), myVector(ir,ig,ib), r);
 
+                break;
+			}
             
             case '/':
                 // don't do anything, it's a comment
@@ -223,54 +257,12 @@ void parseSceneFile (char *filnam)
         }
         
     }
-}
-
-void
-writeRgba (const char fileName[],
-           const Rgba *pixels,
-           int width,
-           int height)
-{
-    //
-    // Write an RGBA image using class RgbaOutputFile.
-    //
-    //	- open the file
-    //	- describe the memory layout of the pixels
-    //	- store the pixels in the file
-    //
-    
-    
-    RgbaOutputFile file (fileName, width, height, WRITE_RGBA);
-    file.setFrameBuffer (pixels, 1, width);
-    file.writePixels (height);
-}
-
-
-
-void
-readRgba (const char fileName[],
-          Array2D<Rgba> &pixels,
-          int &width,
-          int &height)
-{
-    //
-    // Read an RGBA image using class RgbaInputFile:
-    //
-    //	- open the file
-    //	- allocate memory for the pixels
-    //	- describe the memory layout of the pixels
-    //	- read the pixels from the file
-    //
-    
-    RgbaInputFile file (fileName);
-    Box2i dw = file.dataWindow();
-    
-    width  = dw.max.x - dw.min.x + 1;
-    height = dw.max.y - dw.min.y + 1;
-    pixels.resizeErase (height, width);
-    
-    file.setFrameBuffer (&pixels[0][0] - dw.min.x - dw.min.y * width, 1, width);
-    file.readPixels (dw.min.y, dw.max.y);
+	
+    // make sure we read in 1 camera, no more no less.
+    assert (num_cams >= 1); // make sure there are some surfaces
+    if (num_cams != 1) {
+        std::cerr << "scene file error: exactly ONE camera must be defined." << endl;
+    }
 }
 
 //
@@ -278,48 +270,24 @@ readRgba (const char fileName[],
 // supposed to be the scenefile.
 //
 
-void generateImage(Array2D<Rgba> &pixels,int &width, int &height, myCamera &camera) {
-	for(int j = 0; j < height; j ++) {
-		for(int i = 0; i < width; i ++) {
-			float u = camera.l + (camera.r - camera.l) * (i + 0.5) / camera.nx;
-			float v = camera.t - (camera.t - camera.b) * (j + 0.5) / camera.ny;
-			myVector dir = -camera.d * camera.w + u * camera.u + v * camera.v;
-			dir.normalize();
-			myRay ray = myRay(camera.eye, dir);
-			
-#ifdef IM_DEBUGGING
-                // if we're debugging, show what we got:
-                cout << "(" << i <<"," << j <<"):";
-                cout << "ray.point: " << ray.origin.x << " " << ray.origin.y << " " << ray.origin.z << ", " 
-					 << "ray.dir: "<< ray.dir.x << " "  << ray.dir.y << " "  << ray.dir.z << endl;
-#endif
-				Rgba &px = pixels[j][i];
-				px.r = 0;
-				px.g = 0;
-				px.b = 0;
-				px.a = 1;
-				for(vector<mySurface*>::iterator it = objectsList.begin(); it != objectsList.end(); ++it) {
-					if ((*it)->intersect(ray)) {
-						px.r = HALF_MAX;
-						break;
-					}
-
-				}
-		}
-     }
-}
 int main (int argc, char *argv[])
 { 
-
-    if (argc != 2) {
-        cerr << "useage: raytra scenefilename" << endl;
-        return -1;
+    if (argc != 3) {
+        // error condition: 
+        std::cout << "usage: raytra scenefile outputimage" << std::endl;
     }
     
-    parseSceneFile (argv[1]);
-
-	generateImage(image, width, height, camera);
-    writeRgba ("hw1.1.exr", &image[0][0], width, height);
+	myCamera camera;
+	
+	vector<mySurface*> Surfaces;
+	vector<myLight*> Lights;
+    parseSceneFile (argv[1], camera, Surfaces, Lights);
+	
+    assert (Surfaces.size () != 0); // make sure there are some surfaces
+    assert (Lights.size () != 0); // make sure there are some lights
+	
+	camera.renderScene(Surfaces, Lights);
+	camera.writeImage(argv[2]);
 
     return 0;
 }
