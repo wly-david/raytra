@@ -74,7 +74,7 @@ double getTokenAsFloat (string inString, int whichToken)
 // only use "correct" scene files.
 //
 //
-void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Surfaces, vector< myLight * > &Lights)
+void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Surfaces, vector< myMaterial * > &Materials, vector< myLight * > &Lights)
 {
     
     ifstream inFile(filname);    // open the file
@@ -96,8 +96,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
     // you will set its material to lastMaterialLoaded.
 
     int num_cams = 0;
-	bool material_exist = false;
-	myMaterial lastMaterialLoaded;
+	myMaterial *lastMaterialLoaded = NULL;
 
     while (! inFile.eof ()) {   // go through every line in the file until finished
         
@@ -128,8 +127,9 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
                 // mySphereClass *ms = new mySphereClass (x, y, z, r);   // make a new instance of your sphere class
                 // ms->setMaterial (lastMaterialLoaded)
                 // objectsList->push_back (ms);  // objectsList is a global std:vector<surface *> for example.
+
 				mySphere *sphere = new mySphere(myPoint(x, y, z), r);
-				assert(material_exist);
+				assert(lastMaterialLoaded != NULL);
 				sphere->setMaterial(lastMaterialLoaded);
 				Surfaces.push_back(sphere);
                 
@@ -140,9 +140,23 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
 #endif
                 break;
             }
-            case 't':   // triangle
+            case 't': {// triangle
+                double a1, b1, c1, a2, b2, c2, a3, b3, c3;
+                a1 = getTokenAsFloat (line, 1);
+                b1 = getTokenAsFloat (line, 2);
+                c1 = getTokenAsFloat (line, 3);
+                a2 = getTokenAsFloat (line, 4);
+                b2 = getTokenAsFloat (line, 5);
+                c2 = getTokenAsFloat (line, 6);
+                a3 = getTokenAsFloat (line, 7);
+                b3 = getTokenAsFloat (line, 8);
+                c3 = getTokenAsFloat (line, 9);
+				myTriangle *triangle = new myTriangle(myPoint(a1, b1, c1), myPoint(a2, b2, c2), myPoint(a3, b3, c3));
+				assert(lastMaterialLoaded != NULL);
+				triangle->setMaterial(lastMaterialLoaded);
+				Surfaces.push_back(triangle);
                 break;
-                
+			}
             case 'p': {  // plane
 				double nx, ny, nz, d;
                 nx = getTokenAsFloat (line, 1);
@@ -150,7 +164,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
                 nz = getTokenAsFloat (line, 3);
                 d = getTokenAsFloat (line, 4);
 				myPlane *plane = new myPlane(myVector(nx, ny, nz), d);
-				assert(material_exist);
+				assert(lastMaterialLoaded != NULL);
 				plane->setMaterial(lastMaterialLoaded);
 				Surfaces.push_back(plane);
                 break;
@@ -227,7 +241,6 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
                 //  1. read in the 10 material parameters: dr, dg, db, sr, sg, sb, r, ir, ig, ib
                 //  2. call lastMaterialLoaded->setMaterial(dr, dg, db,...);
                 //
-				material_exist = true;
                 double dr, dg, db, sr, sg, sb, r, ir, ig, ib;
                 dr = getTokenAsFloat (line, 1);
                 dg = getTokenAsFloat (line, 2);
@@ -239,8 +252,8 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
                 ir = getTokenAsFloat (line, 8);
                 ig = getTokenAsFloat (line, 9);
                 ib = getTokenAsFloat (line, 10);
-				lastMaterialLoaded.set(myVector(dr,dg,db), myVector(sr,sg,sb), myVector(ir,ig,ib), r);
-
+				lastMaterialLoaded = new myMaterial(myVector(dr,dg,db), myVector(sr,sg,sb), myVector(ir,ig,ib), r);
+				Materials.push_back(lastMaterialLoaded);
                 break;
 			}
             
@@ -280,9 +293,11 @@ int main (int argc, char *argv[])
 	myCamera camera;
 	
 	vector<mySurface*> Surfaces;
+    vector<myMaterial*> Materials;
 	vector<myLight*> Lights;
-    parseSceneFile (argv[1], camera, Surfaces, Lights);
+    parseSceneFile (argv[1], camera, Surfaces, Materials, Lights);
 	
+    assert (Materials.size () != 0); // make sure there are some materials
     assert (Surfaces.size () != 0); // make sure there are some surfaces
     assert (Lights.size () != 0); // make sure there are some lights
 	

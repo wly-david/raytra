@@ -22,6 +22,10 @@ public:
     }
 
 	myVector normalize(void);
+
+	double length () const {
+        return sqrt (ijk_[0] * ijk_[0] + ijk_[1] * ijk_[1] + ijk_[2] * ijk_[2]);
+    }
 	
     double operator[] (const int i) const;
 

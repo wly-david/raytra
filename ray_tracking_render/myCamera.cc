@@ -56,12 +56,10 @@ mySurface* myCamera::findIntersection(const myRay &ray, std::vector< mySurface *
 	mySurface* intersection = NULL;
 	double min_d = DBL_MAX;
 	for(std::vector<mySurface*>::iterator it = surfaces.begin(); it != surfaces.end(); ++it) {
-		if ((*it)->intersect(ray)) {
-			double current = (*it)->minIntersectPos(ray);
-			if (current > d  && current < min_d) {
-				intersection = *it;
-				min_d = current;
-			}
+		double current = (*it)->minIntersectPos(ray);
+		if (current > 0 && current < min_d) {
+			intersection = *it;
+			min_d = current;
 		}
 	}
 	distance = min_d;
@@ -81,41 +79,45 @@ void myCamera::renderScene (std::vector< mySurface * > &surfaces, std::vector< m
             //if ((j * nx + i) % printProgress == 0)
             //    std::cout << ".";
 
-			myRay ray = generateRay(i, j);
-			
+			myRay ray = generateRay(i, j);			
+			setPixel (i, j, 0, 0, 0);
+
 			double distance = DBL_MAX;
 			mySurface* intersectedSurface = findIntersection(ray, surfaces, distance);
 			
-            setPixel (i, j, 0, 0, 0);
 			if (intersectedSurface != NULL) {
 				myPoint intersectPos = ray.getOrigin() + distance * ray.getDir();
 				myVector norm = intersectedSurface->getNorm(intersectPos);
 				if (norm * ray.getDir() > 0)
-					break;
+					continue;
 				myVector color(0,0,0);
 				for(std::vector<myLight*>::iterator it = lights.begin(); it != lights.end(); ++it) {
 					myRay lightRay = (*it)->genrateRay(intersectPos);
-					//double dis2light = DBL_MAX;
-					//mySurface* intersectedLight = findIntersection(lightRay, surfaces, dis2light);
-					//double diff = fabs((intersectPos - lightRay.getOrigin()) * lightRay.getDir() - dis2light);
-					// if (intersectedLight == intersectedSurface && diff < 0.0001){
-						double n_l = (-1) * lightRay.getDir() * norm > 0 ? (-1) * lightRay.getDir() * norm : 0;
-						myVector diffRes = myVector(intersectedSurface->getMaterial().getDiff()[0] * (*it)->getColor()[0],
-							intersectedSurface->getMaterial().getDiff()[1] * (*it)->getColor()[1],
-							intersectedSurface->getMaterial().getDiff()[2] * (*it)->getColor()[2]);
+					double dis2light = DBL_MAX;
+					/*mySurface* obstruction = */ findIntersection(lightRay, surfaces, dis2light);
+					double diff = fabs((intersectPos - lightRay.getOrigin()) * lightRay.getDir() - dis2light);
+					if (/*obstruction == intersectedSurface && */ diff < 0.0001){
+						color = color + intersectedSurface->getMaterial()->getPhongShading(
+							(-1) * lightRay.getDir(),
+							(-1) * ray.getDir(),
+							norm,
+							(*it)->getColor());
+						
+						/*double n_l = (-1) * lightRay.getDir() * norm > 0 ? (-1) * lightRay.getDir() * norm : 0;
+						myVector diffRes = myVector(intersectedSurface->getMaterial()->getDiff()[0] * (*it)->getColor()[0],
+							intersectedSurface->getMaterial()->getDiff()[1] * (*it)->getColor()[1],
+							intersectedSurface->getMaterial()->getDiff()[2] * (*it)->getColor()[2]);
 						color = color + n_l * diffRes;
 
 						myVector h = (-1) * (lightRay.getDir() + ray.getDir()).normalize();
 						double n_h = h * norm > 0 ? h * norm : 0;
-						n_h = pow(n_h, intersectedSurface->getMaterial().getPhong());
-						myVector specRes = myVector(intersectedSurface->getMaterial().getSpec()[0] * (*it)->getColor()[0],
-							intersectedSurface->getMaterial().getSpec()[1] * (*it)->getColor()[1],
-							intersectedSurface->getMaterial().getSpec()[2] * (*it)->getColor()[2]);
-						color = color + n_h * specRes;
-						
-					//}
+						n_h = pow(n_h, intersectedSurface->getMaterial()->getPhong());
+						myVector specRes = myVector(intersectedSurface->getMaterial()->getSpec()[0] * (*it)->getColor()[0],
+							intersectedSurface->getMaterial()->getSpec()[1] * (*it)->getColor()[1],
+							intersectedSurface->getMaterial()->getSpec()[2] * (*it)->getColor()[2]);
+						color = color + n_h * specRes;*/
+					}
 				}
-
 				setPixel(i, j, color[0], color[1], color[2]);
 			}
 		}

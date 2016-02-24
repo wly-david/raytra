@@ -6,12 +6,12 @@ class mySurface
 protected:
 	myMaterial * material;
 public:
-	mySurface(void) { }
-	void setMaterial(const myMaterial & m) {
-		this->material = new myMaterial(m);
+	mySurface(void) { material = NULL;}
+	void setMaterial(myMaterial * m) {
+		this->material = m;
 	}
-	myMaterial getMaterial() const {
-		return myMaterial (*(this->material));
+	myMaterial * const getMaterial() const {
+		return this->material;
 	}
 	virtual bool intersect(const myRay &) = 0;
 	virtual double minIntersectPos(const myRay &) = 0;
