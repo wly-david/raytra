@@ -303,6 +303,15 @@ int main (int argc, char *argv[])
 	
 	camera.renderScene(Surfaces, Lights);
 	camera.writeImage(argv[2]);
-
+	
+	for(std::vector<mySurface*>::iterator it = Surfaces.begin(); it != Surfaces.end(); ++it) {
+		delete (*it);
+	}
+	for(std::vector<myLight*>::iterator it = Lights.begin(); it != Lights.end(); ++it) {
+		delete (*it);
+	}
+	for(std::vector<myMaterial*>::iterator it = Materials.begin(); it != Materials.end(); ++it) {
+		delete (*it);
+	}
     return 0;
 }
