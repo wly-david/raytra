@@ -306,7 +306,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
 				myPoint triPoints[3];
 				for(vector<int>::iterator it = tris.begin(); it != tris.end(); ++it) {
 					triPoints[count] = verts[*it];
-					count = ++count % 3;
+					count = (count + 1) % 3;
 					if (count == 0) {						
 						myTriangle *triangle = new myTriangle(triPoints[0], triPoints[1], triPoints[2]);
 						assert(lastMaterialLoaded != NULL);
@@ -361,8 +361,8 @@ int main (int argc, char *argv[])
     assert (Surfaces.size () != 0); // make sure there are some surfaces
     assert (Lights.size () != 0); // make sure there are some lights
 	
-	// camera.renderScene(Surfaces, Lights, ambient);
-	// camera.writeImage(argv[2]);
+	camera.renderScene(Surfaces, Lights, ambient);
+	camera.writeImage(argv[2]);
 	
 	for(vector<mySurface*>::iterator it = Surfaces.begin(); it != Surfaces.end(); ++it) {
 		delete (*it);

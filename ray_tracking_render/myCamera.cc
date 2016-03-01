@@ -67,12 +67,10 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t, in
 	for(std::vector<myLight*>::iterator it = lights.begin(); it != lights.end(); ++it) {
 		myRay lightRay(intersectPos, ((*it)->getPos() - intersectPos).normalize());
 		bool shadowed = false;
-#ifdef SHADOW_OFF
 		double dis2light = ((*it)->getPos() - intersectPos) * lightRay.getDir();
 		double dis2obs;
 		mySurface* obstruction =  findIntersection(lightRay, 0.0001, dis2light, SHADOW_RAY, dis2obs, surfaces);		
 		shadowed = (obstruction != NULL);
-#endif
 		if (!shadowed){
 			color = color + intersectedSurface->getMaterial()->getPhongShading(
 				lightRay.getDir(),
