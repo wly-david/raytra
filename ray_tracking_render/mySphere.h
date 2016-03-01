@@ -15,6 +15,19 @@ public:
 	virtual double minIntersectPos(const myRay &);
 	virtual myVector getNorm(const myPoint &);
 
-	~mySphere(void) { }
+	virtual ~mySphere(void) { }
 };
 
+inline myVector mySphere::getNorm(const myPoint &pos) {
+	return (pos - this->O).normalize();
+}
+
+inline double mySphere::minIntersectPos(const myRay & ray) {
+	double root = (ray.getDir() * (ray.getOrigin() - this->O)) * (ray.getDir() * (ray.getOrigin() - this->O))
+		- (ray.getDir() * ray.getDir()) * ((ray.getOrigin() - this->O) * (ray.getOrigin() - this->O) - this->r * this->r);
+	
+	if (root < 0) return -1;
+	
+	double min_d = (-1) * ray.getDir() * (ray.getOrigin() - this->O) - sqrt(root);
+	return (min_d > 0) ? min_d : -1;
+}

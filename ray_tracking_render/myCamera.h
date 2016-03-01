@@ -4,6 +4,7 @@
 #include "mySurface.h"
 #include "myLight.h"
 #include "mySphere.h"
+#include "ALight.h"
 
 #include <ImfRgbaFile.h>
 #include <ImfStringAttribute.h>
@@ -11,6 +12,9 @@
 #include <ImfArray.h>
 #include <vector>
 
+#define REFL_TIMES 20
+#define SHADOW_RAY 1
+#define REGULAR_RAY 0
 
 using namespace Imf;
 using namespace Imath;
@@ -33,19 +37,19 @@ class myCamera
 
 public:
 	// if film is centered
-	myCamera(void);
+	myCamera(void) { }
 
 	void init(myPoint, myVector, double, double, double, int, int);
 
-	~myCamera(void);
+	~myCamera(void) { }
 
-	
     myRay generateRay (const int i, const int j);
     
-	void renderScene (std::vector< mySurface * > &surfaces, std::vector< myLight * > &lights);
+	void renderScene (std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
 
-	
-	mySurface* findIntersection(const myRay &ray, std::vector< mySurface * > &surfaces, double &distance);
+	mySurface* findIntersection(const myRay &, const double, const double, const int, double &, std::vector< mySurface * > &);
+
+	myVector recursive_L (const myRay &, double, double, int, int, std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
 
     void writeImage (const char *sceneFile);
     
@@ -58,3 +62,11 @@ public:
     }
 };
 
+
+inline myRay myCamera::generateRay (const int i, const int j) {
+	double u = this->l + (this->r - this->l) * (i + 0.5) / this->nx;
+	double v = this->t - (this->t - this->b) * (j + 0.5) / this->ny;
+	myVector dir = -this->d * this->w + u * this->u + v * this->v;
+	dir.normalize();
+	return myRay(this->eye, dir);
+}

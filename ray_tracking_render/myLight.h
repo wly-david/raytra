@@ -6,9 +6,8 @@ class myLight
 public:
 	myLight(void) { }
 	
-	myRay virtual genrateRay(myPoint object)=0;
-	
 	myVector virtual getColor() const =0;
-	~myLight(void) { }
+	myPoint virtual getPos() const =0;
+	virtual ~myLight(void) { }
 };
 

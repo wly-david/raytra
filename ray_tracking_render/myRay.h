@@ -8,9 +8,9 @@ class myRay
 	myPoint origin;
 	myVector dir;
 public:
-	myRay(void);
+	myRay(void) { }
 
-	myRay(const myPoint &p, const myVector &v);
+	myRay(const myPoint &p, const myVector &v) :	origin(p), dir(v) { }
 
 //	myRay(double, double, double, double, double, double);
 	
@@ -19,6 +19,6 @@ public:
     void setOrigin (const myPoint &pnt)	{ this->origin = pnt; }
     myVector getDir () const { return dir; }
     myPoint  getOrigin () const { return origin; }
-	~myRay(void);
+	~myRay(void) { }
 };
 

@@ -1,7 +1,8 @@
 #include"myCamera.h"
-#include"mySphere.h"
 #include"myLight.h"
 #include"p_light.h"
+#include"ALight.h"
+#include"mySphere.h"
 #include"myPlane.h"
 #include"myTriangle.h"
 
@@ -11,6 +12,5 @@
 #include <cstring>
 #include <string>
 #include <vector>
-
 
 using namespace std;

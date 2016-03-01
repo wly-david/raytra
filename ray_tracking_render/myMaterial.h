@@ -26,6 +26,9 @@ public:
 	myVector getSpec() const{
 		return spec;
 	}
+	myVector getRefl() const{
+		return refl;
+	}
 	
 	double getPhong() const{
 		return r;

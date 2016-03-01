@@ -4,6 +4,78 @@
 
 //#define IM_DEBUGGING
 
+// Given the name of a wavefront (OBJ) file that consists JUST of
+// vertices, triangles, and comments, read it into the tris and verts
+// vectors.
+//
+// tris is a vector of ints that is 3*n long, where n is the number of
+// triangles. The ith triangle has vertex indexes 3*i, 3*i+1, and 3*i+2.
+//
+// The ith triangle has vertices:
+//
+//     verts[3*tris[3*i]], verts[3*tris[3*i]+1], verts[3*tris[3*i]+2],
+//     verts[3*tris[3*i+1]], verts[3*tris[3*i+1]+1], verts[3*tris[3*i+1]+2],
+//     verts[3*tris[3*i+2]], verts[3*tris[3*i+2]+1], verts[3*tris[3*i+2]+2]
+//
+// given in counterclockwise order with respect to the surface normal
+//
+// If you are using the supplied Parser class, you should probably make this
+// a method on it: Parser::read_wavefront_file().
+//
+void read_wavefront_file (
+    const char *file,
+    vector< int > &tris,
+    vector< myPoint > &verts)
+{
+    // clear out the tris and verts vectors:
+    tris.clear ();
+    verts.clear ();
+    ifstream in(file);
+	if(!in.good())
+		cerr << "Opening the WaveFront file failed!" << endl;
+    char buffer[1025];
+    string cmd;
+    for (int line=1; in.good(); line++) {
+        in.getline(buffer,1024);
+        buffer[in.gcount()]=0;
+        cmd="";
+        istringstream iss (buffer);
+        iss >> cmd;
+        if (cmd[0]=='#' || cmd.empty()) {
+            // ignore comments or blank lines
+            continue;
+        } 
+        else if (cmd=="v") {
+            // got a vertex:
+            // read in the parameters:
+            double pa, pb, pc;
+            iss >> pa >> pb >> pc;
+            verts.push_back (myPoint(pa, pb, pc));
+         } 
+        else if (cmd=="f") {
+            // got a face (triangle)
+            // read in the parameters:
+            int i, j, k;
+            iss >> i >> j >> k;
+            // vertex numbers in OBJ files start with 1, but in C++ array
+            // indices start with 0, so we're shifting everything down by
+            // 1
+            tris.push_back (i-1);
+            tris.push_back (j-1);
+            tris.push_back (k-1);
+        } 
+        else {
+            cerr << "Parser error: invalid command at line " << line << endl;
+        }
+     }
+    in.close();
+    
+ //   cout << "found this many tris, verts: " << tris.size () / 3.0 << "  " << verts.size () / 3.0 << endl;
+}
+
+
+
+
 // this is called from the parseSceneFile function, which uses
 // it to get the float from the correspoding position on the line.
 //
@@ -74,65 +146,38 @@ double getTokenAsFloat (string inString, int whichToken)
 // only use "correct" scene files.
 //
 //
-void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Surfaces, vector< myMaterial * > &Materials, vector< myLight * > &Lights)
+void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Surfaces, vector< myMaterial * > &Materials, vector< myLight * > &Lights, ALight * ambient)
 {
     
     ifstream inFile(filname);    // open the file
-    string line;
-    
+    string line;    
     if (! inFile.is_open ()) {  // if it's not open, error out.
         cerr << "can't open scene file" << endl;
         exit (-1);
     }
-    
-    
-    // Note: you'll have to keep track of whatever the last material
-    // you loaded in was, so you can apply it to any geometry that gets loaded. 
-    // So here, you'll have something like:
-    //
-    // myMaterialClass *lastMaterialLoaded = 0;  // 0 or maybe a default material?
-    //
-    // and each time you load in a new piece of geometry (sphere, triangle, plane)
-    // you will set its material to lastMaterialLoaded.
-
     int num_cams = 0;
 	myMaterial *lastMaterialLoaded = NULL;
-
+	
+    vector< int > tris;
+    vector< myPoint > verts;
     while (! inFile.eof ()) {   // go through every line in the file until finished
-        
-        getline (inFile, line); // get the line
-        
+        getline (inFile, line); // get the line        
         switch (line[0])  {     // we'll decide which command based on the first character
-            
-            //
             // geometry types:
             //
             // NOTE: whichever type of geo you load in, set its material to
             // be "lastMaterialLoaded"
-            //
             case 's': {
                 // it's a sphere, load in the parameters
-                
                 double x, y, z, r;
                 x = getTokenAsFloat (line, 1); 
                 y = getTokenAsFloat (line, 2); 
                 z = getTokenAsFloat (line, 3); 
-                r = getTokenAsFloat (line, 4); 
-				
-                // build your sphere here from the parameters
-                // i.e. you must call your sphere constructor and set its position
-                // and radius from the above values. You must also put your new
-                // sphere into the objects list (which can be global)
-                // So something like;
-                // mySphereClass *ms = new mySphereClass (x, y, z, r);   // make a new instance of your sphere class
-                // ms->setMaterial (lastMaterialLoaded)
-                // objectsList->push_back (ms);  // objectsList is a global std:vector<surface *> for example.
-
+                r = getTokenAsFloat (line, 4); 				
 				mySphere *sphere = new mySphere(myPoint(x, y, z), r);
 				assert(lastMaterialLoaded != NULL);
 				sphere->setMaterial(lastMaterialLoaded);
 				Surfaces.push_back(sphere);
-                
 #ifdef IM_DEBUGGING
                 // if we're debugging, show what we got:
                 cout << "got a sphere with ";
@@ -169,15 +214,11 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
 				Surfaces.push_back(plane);
                 break;
 			}
-            //
             // camera:
-            //
             case 'c': {// camera
                 // one trick here: the cameras pixel count (width, height) are integers,
                 // so cast them.
-				
 				++num_cams; // keep track of how many we read in
-
                 double x, y, z, vx, vy, vz, d, iw, ih;
 				int pw, ph;
                 x = getTokenAsFloat (line, 1);
@@ -200,11 +241,8 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
 #endif
                 break;
 			}
-            //
             // lights:
-            //
             case 'l':   // light
-                
                 // slightly different from the rest, we need to examine the second param,
                 // which is at the third position on the line:
                 switch (line[2]) {
@@ -218,29 +256,30 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
 						b = getTokenAsFloat (line, 7);
 						p_light *pointLight = new p_light(myPoint(x,y,z), r, g, b);
 						Lights.push_back(pointLight);
-
                         break;
 					}
                     case 'd':   // directional light
                         break;
-                    case 'a':   // ambient light
+                    case 'a':   {// ambient light
+						if (num_cams != 1) {
+							cerr << "scene file error: at most ONE ambient light need to be defined." << endl;
+						}
+						double r, g, b;
+						r = getTokenAsFloat (line, 2);
+						g = getTokenAsFloat (line, 3);
+						b = getTokenAsFloat (line, 4);
+						ambient = new ALight(r, g, b);
                         break;
-                        
+					}
                 }
-                
                 break;
-            
-            //
             // materials:
-            //
             case 'm':  { // material
                 // the trick here: we should keep a pointer to the last material we read in,
                 // so we can apply it to any subsequent geometry. Say it's called "lastMaterialLoaded"
                 // we migh then do something like this:
-                //
                 //  1. read in the 10 material parameters: dr, dg, db, sr, sg, sb, r, ir, ig, ib
                 //  2. call lastMaterialLoaded->setMaterial(dr, dg, db,...);
-                //
                 double dr, dg, db, sr, sg, sb, r, ir, ig, ib;
                 dr = getTokenAsFloat (line, 1);
                 dg = getTokenAsFloat (line, 2);
@@ -256,11 +295,29 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
 				Materials.push_back(lastMaterialLoaded);
                 break;
 			}
-            
+			case 'w': {
+				string filename = line.substr(2, line.length() - 2);
+				read_wavefront_file (filename.c_str(), tris, verts);
+#ifdef IM_DEBUGGING
+				cout <<"tris num: " << tris.size() / 3 << endl;
+				cout <<"verts num: " << verts.size() << endl;
+#endif
+				int count = 0;
+				myPoint triPoints[3];
+				for(vector<int>::iterator it = tris.begin(); it != tris.end(); ++it) {
+					triPoints[count] = verts[*it];
+					count = ++count % 3;
+					if (count == 0) {						
+						myTriangle *triangle = new myTriangle(triPoints[0], triPoints[1], triPoints[2]);
+						assert(lastMaterialLoaded != NULL);
+						triangle->setMaterial(lastMaterialLoaded);
+						Surfaces.push_back(triangle);
+					}
+				}
+			}
             case '/':
                 // don't do anything, it's a comment
                 break;
-                
 
             //
             // options
@@ -270,11 +327,12 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
         }
         
     }
-	
     // make sure we read in 1 camera, no more no less.
+	tris.clear();
+	verts.clear();
     assert (num_cams >= 1); // make sure there are some surfaces
     if (num_cams != 1) {
-        std::cerr << "scene file error: exactly ONE camera must be defined." << endl;
+        cerr << "scene file error: exactly ONE camera must be defined." << endl;
     }
 }
 
@@ -287,30 +345,32 @@ int main (int argc, char *argv[])
 { 
     if (argc != 3) {
         // error condition: 
-        std::cout << "usage: raytra scenefile outputimage" << std::endl;
+        cout << "usage: raytra scenefile outputimage" << endl;
+		return -1;
     }
     
 	myCamera camera;
 	
+	ALight* ambient = NULL;
 	vector<mySurface*> Surfaces;
     vector<myMaterial*> Materials;
 	vector<myLight*> Lights;
-    parseSceneFile (argv[1], camera, Surfaces, Materials, Lights);
+    parseSceneFile (argv[1], camera, Surfaces, Materials, Lights, ambient);
 	
     assert (Materials.size () != 0); // make sure there are some materials
     assert (Surfaces.size () != 0); // make sure there are some surfaces
     assert (Lights.size () != 0); // make sure there are some lights
 	
-	camera.renderScene(Surfaces, Lights);
-	camera.writeImage(argv[2]);
+	// camera.renderScene(Surfaces, Lights, ambient);
+	// camera.writeImage(argv[2]);
 	
-	for(std::vector<mySurface*>::iterator it = Surfaces.begin(); it != Surfaces.end(); ++it) {
+	for(vector<mySurface*>::iterator it = Surfaces.begin(); it != Surfaces.end(); ++it) {
 		delete (*it);
 	}
-	for(std::vector<myLight*>::iterator it = Lights.begin(); it != Lights.end(); ++it) {
+	for(vector<myLight*>::iterator it = Lights.begin(); it != Lights.end(); ++it) {
 		delete (*it);
 	}
-	for(std::vector<myMaterial*>::iterator it = Materials.begin(); it != Materials.end(); ++it) {
+	for(vector<myMaterial*>::iterator it = Materials.begin(); it != Materials.end(); ++it) {
 		delete (*it);
 	}
     return 0;

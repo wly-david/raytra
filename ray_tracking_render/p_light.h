@@ -26,11 +26,12 @@ public:
 	}
 	
 	myVector virtual getColor() const{
-		return myVector(color);
+		return color;
+	}
+	myPoint virtual getPos() const {
+		return position;
 	}
 
-	myRay virtual genrateRay(myPoint object);
-
-	~p_light(void) { };
+	virtual ~p_light(void) { };
 };
 

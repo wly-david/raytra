@@ -24,6 +24,17 @@ public:
 		Norm.normalize();
 		d = (pos - myPoint(0, 0, 0)) * Norm;
 	}*/
-	~myPlane(void) { }
+	virtual ~myPlane(void) { }
 };
 
+
+inline myVector myPlane::getNorm(const myPoint &pos) {
+	return Norm;
+}
+
+inline double myPlane::minIntersectPos(const myRay & ray) {
+	if (ray.getDir() * Norm == 0)
+		return -1;
+	double dis = -((ray.getOrigin() - myPoint(0,0,0)) * Norm + d) / (ray.getDir() * Norm);
+	return (dis > 0) ? dis : -1;
+}

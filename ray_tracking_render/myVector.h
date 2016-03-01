@@ -69,7 +69,6 @@ inline double myVector::operator[]
     return ijk_[i];
 }
 
-
 inline myVector myVector::normalize ()
 {
     assert (! (ijk_[0] == 0.0 && ijk_[1] == 0.0 && ijk_[2] == 0.0));
