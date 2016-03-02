@@ -67,10 +67,12 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t, in
 	for(std::vector<myLight*>::iterator it = lights.begin(); it != lights.end(); ++it) {
 		myRay lightRay(intersectPos, ((*it)->getPos() - intersectPos).normalize());
 		bool shadowed = false;
+#ifndef shadowoff
 		double dis2light = ((*it)->getPos() - intersectPos) * lightRay.getDir();
 		double dis2obs;
 		mySurface* obstruction =  findIntersection(lightRay, 0.0001, dis2light, SHADOW_RAY, dis2obs, surfaces);		
 		shadowed = (obstruction != NULL);
+#endif
 		if (!shadowed){
 			color = color + intersectedSurface->getMaterial()->getPhongShading(
 				lightRay.getDir(),
@@ -88,9 +90,9 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t, in
 	if (intersectedSurface->getMaterial()->getRefl().length() != 0) {
 		myVector reflDir = ray.getDir() + (-2) * (ray.getDir() * norm) * norm;
 		myRay reflRay(intersectPos, reflDir);
-		myVector reflLight = norm * reflDir * recursive_L(reflRay, 0.0001, DBL_MAX, recurse_limit - 1, ray_type, surfaces, lights, ambient);
+		myVector reflLight = /* norm * reflDir * */ recursive_L(reflRay, 0.0001, DBL_MAX, recurse_limit - 1, ray_type, surfaces, lights, ambient);
 		myVector km = intersectedSurface->getMaterial()->getRefl();
-		color = color + myVector(km[0] * reflLight[0], km[1] * reflLight[1],	km[2] * reflLight[2]);
+		color = color + myVector(km[0] * reflLight[0], km[1] * reflLight[1], km[2] * reflLight[2]);
 	}
 	return color;
 }

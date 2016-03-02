@@ -146,7 +146,7 @@ double getTokenAsFloat (string inString, int whichToken)
 // only use "correct" scene files.
 //
 //
-void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Surfaces, vector< myMaterial * > &Materials, vector< myLight * > &Lights, ALight * ambient)
+void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Surfaces, vector< myMaterial * > &Materials, vector< myLight * > &Lights, ALight * &ambient)
 {
     
     ifstream inFile(filname);    // open the file
@@ -261,7 +261,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
                     case 'd':   // directional light
                         break;
                     case 'a':   {// ambient light
-						if (num_cams != 1) {
+						if (ambient != NULL) {
 							cerr << "scene file error: at most ONE ambient light need to be defined." << endl;
 						}
 						double r, g, b;
@@ -356,7 +356,6 @@ int main (int argc, char *argv[])
     vector<myMaterial*> Materials;
 	vector<myLight*> Lights;
     parseSceneFile (argv[1], camera, Surfaces, Materials, Lights, ambient);
-	
     assert (Materials.size () != 0); // make sure there are some materials
     assert (Surfaces.size () != 0); // make sure there are some surfaces
     assert (Lights.size () != 0); // make sure there are some lights
