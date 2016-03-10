@@ -5,6 +5,7 @@
 #include"mySphere.h"
 #include"myPlane.h"
 #include"myTriangle.h"
+#include"BVH_Node.h"
 
 #include <cmath>
 #include <iostream>

@@ -2,6 +2,7 @@
 #include"myPoint.h"
 #include"myVector.h"
 #include<vector>
+#include<cassert>
 
 class myRay
 {
@@ -10,7 +11,9 @@ class myRay
 public:
 	myRay(void) { }
 
-	myRay(const myPoint &p, const myVector &v) :	origin(p), dir(v) { }
+	myRay(const myPoint &p, const myVector &v) :	origin(p), dir(v) {
+		dir.normalize();
+	}
 
 //	myRay(double, double, double, double, double, double);
 	

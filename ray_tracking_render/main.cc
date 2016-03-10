@@ -149,7 +149,7 @@ double getTokenAsFloat (string inString, int whichToken)
 // only use "correct" scene files.
 //
 //
-void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Surfaces, vector< myMaterial * > &Materials, vector< myLight * > &Lights, ALight * &ambient)
+void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &BBoxes, vector< mySurface * > &Surfaces, vector< myMaterial * > &Materials, vector< myLight * > &Lights, ALight * &ambient)
 {
     
     ifstream inFile(filname);    // open the file
@@ -184,6 +184,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
 				assert(lastMaterialLoaded != NULL);
 				sphere->setMaterial(lastMaterialLoaded);
 				Surfaces.push_back(sphere);
+				BBoxes.push_back(sphere->generateBBox());
 #ifdef IM_DEBUGGING
                 // if we're debugging, show what we got:
                 cout << "got a sphere with ";
@@ -206,7 +207,8 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
 				assert(lastMaterialLoaded != NULL);
 				triangle->setMaterial(lastMaterialLoaded);
 				Surfaces.push_back(triangle);
-                break;
+				BBoxes.push_back(triangle->generateBBox());
+				break;
 			}
             case 'p': {  // plane
 				double nx, ny, nz, d;
@@ -323,6 +325,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
 						assert(lastMaterialLoaded != NULL);
 						triangle->setMaterial(lastMaterialLoaded);
 						Surfaces.push_back(triangle);
+						BBoxes.push_back(triangle->generateBBox());
 					}
 				}
 			}
@@ -354,23 +357,30 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
 
 int main (int argc, char *argv[])
 { 
-    if (argc != 3) {
+	int render_model = 1;
+    if (argc != 3 && argc != 4) {
         // error condition: 
         cout << "usage: raytra scenefile outputimage" << endl;
 		return -1;
     }
+	else if (argc == 4) {
+		render_model = atoi(argv[3]);
+	}
 	myCamera camera;
 	
 	ALight* ambient = NULL;
+	vector<mySurface*> BBoxes;
 	vector<mySurface*> Surfaces;
     vector<myMaterial*> Materials;
 	vector<myLight*> Lights;
-    parseSceneFile (argv[1], camera, Surfaces, Materials, Lights, ambient);
+    parseSceneFile (argv[1], camera, BBoxes, Surfaces, Materials, Lights, ambient);
     assert (Materials.size () != 0); // make sure there are some materials
     assert (Surfaces.size () != 0); // make sure there are some surfaces
     assert (Lights.size () != 0); // make sure there are some lights
-	
-	camera.renderScene(Surfaces, Lights, ambient);
+	if (render_model == 0)
+		camera.renderScene(Surfaces, Lights, ambient);
+	else
+		camera.renderScene(BBoxes, Lights, ambient);
 	camera.writeImage(argv[2]);
 	
 	for(vector<mySurface*>::iterator it = Surfaces.begin(); it != Surfaces.end(); ++it) {

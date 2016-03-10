@@ -1,6 +1,6 @@
 #pragma once
 #include "mySurface.h"
-#include "mySphere.h"
+#include"myBBox.h"
 class myPlane :
 	public mySurface
 {
@@ -14,6 +14,7 @@ public:
 		d = dis;
 	}
 	
+	virtual mySurface * generateBBox() { return NULL;}
 	virtual bool intersect(const myRay &, double & distance);
 	virtual double minIntersectPos(const myRay &);
 	virtual myVector getNorm(const myPoint &);

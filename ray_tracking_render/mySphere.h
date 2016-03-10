@@ -1,6 +1,7 @@
 #pragma once
 #include"myPoint.h"
 #include"mySurface.h"
+#include"myBBox.h"
 class mySphere : public mySurface
 {
 	myPoint O; // origin
@@ -11,6 +12,13 @@ public:
 	mySphere (const myPoint & pos,const double radius) : O(pos), r(radius){ }
 	
 //	mySphere(double, double, double, double);
+	virtual mySurface * generateBBox(){
+		myPoint minP(O[0] - r, O[1] - r, O[2] - r);
+		myPoint maxP(O[0] + r, O[1] + r, O[2] + r);
+		myBBox * bbox = new myBBox(minP, maxP);
+		bbox->setMaterial(this->getMaterial());
+		return bbox;
+	}
 	virtual bool intersect(const myRay &, double &);
 	virtual double minIntersectPos(const myRay &);
 	virtual myVector getNorm(const myPoint &);

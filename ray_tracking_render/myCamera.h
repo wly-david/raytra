@@ -5,6 +5,7 @@
 #include "myLight.h"
 #include "mySphere.h"
 #include "ALight.h"
+#include "BVH_Node.h"
 
 #include <ImfRgbaFile.h>
 #include <ImfStringAttribute.h>
@@ -69,6 +70,5 @@ inline myRay myCamera::generateRay (const int i, const int j) {
 	double u = this->l + (this->r - this->l) * (i + 0.5) / this->nx;
 	double v = this->t - (this->t - this->b) * (j + 0.5) / this->ny;
 	myVector dir = -this->d * this->w + u * this->u + v * this->v;
-	dir.normalize();
 	return myRay(this->eye, dir);
 }

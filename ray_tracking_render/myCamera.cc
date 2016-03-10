@@ -1,5 +1,5 @@
 #include "myCamera.h"
-
+#include<limits>
 void myCamera::init(myPoint p, myVector v, double d, double iw, double ih, int pw, int ph)
 {
 	this->eye = p;
@@ -67,7 +67,7 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t, in
 
 	myVector color(0,0,0);
 	for(std::vector<myLight*>::iterator it = lights.begin(); it != lights.end(); ++it) {
-		myRay lightRay(intersectPos, ((*it)->getPos() - intersectPos).normalize());
+		myRay lightRay(intersectPos, ((*it)->getPos() - intersectPos));
 		bool shadowed = false;
 #ifndef shadowoff
 		double dis2light = ((*it)->getPos() - intersectPos) * lightRay.getDir();

@@ -1,5 +1,6 @@
 #pragma once
 #include "mySurface.h"
+#include "myBBox.h"
 class myTriangle :
 	public mySurface
 {
@@ -17,6 +18,27 @@ public:
 		Norm = crossProduct(ab,ac);
 		assert (Norm.length () != 0.0);
 		Norm.normalize();
+	}
+	virtual mySurface * generateBBox(){
+		double minp[3], maxp[3];
+		for(int i = 0; i < 3; i ++) {
+			minp[i] = a[i];
+			maxp[i] = a[i];
+			if (b[i] < minp[i])
+				minp[i] = b[i];
+			if (b[i] > minp[i])
+				maxp[i] = b[i];
+			if (c[i] < minp[i])
+				minp[i] = b[i];
+			if (c[i] > minp[i])
+				maxp[i] = b[i];
+		};
+		
+		myPoint minP(minp[0], minp[1], minp[2]);
+		myPoint maxP(maxp[0], maxp[1], maxp[2]);
+		myBBox * bbox = new myBBox(minP, maxP);
+		bbox->setMaterial(this->getMaterial());
+		return bbox;
 	}
 	virtual bool intersect(const myRay &, double &);
 	virtual double minIntersectPos(const myRay &);
