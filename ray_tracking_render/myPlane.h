@@ -14,7 +14,7 @@ public:
 		d = dis;
 	}
 	
-	virtual bool intersect(const myRay &);
+	virtual bool intersect(const myRay &, double & distance);
 	virtual double minIntersectPos(const myRay &);
 	virtual myVector getNorm(const myPoint &);
 
@@ -37,4 +37,14 @@ inline double myPlane::minIntersectPos(const myRay & ray) {
 		return -1;
 	double dis = -((ray.getOrigin() - myPoint(0,0,0)) * Norm + d) / (ray.getDir() * Norm);
 	return (dis > 0) ? dis : -1;
+}
+
+inline bool myPlane::intersect(const myRay & ray, double & distance) {
+	if (ray.getDir() * Norm == 0)
+		return false;
+	double dis = -((ray.getOrigin() - myPoint(0,0,0)) * Norm + d) / (ray.getDir() * Norm);
+	if (dis <= 0)
+		return false;	
+	distance = dis;
+	return true;
 }

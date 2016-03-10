@@ -13,7 +13,7 @@
 #include <vector>
 
 #ifndef REFL_TIMES
-	#define REFL_TIMES 20
+	#define REFL_TIMES 10
 #endif
 #define SHADOW_RAY 1
 #define REGULAR_RAY 0

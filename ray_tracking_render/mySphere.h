@@ -11,7 +11,7 @@ public:
 	mySphere (const myPoint & pos,const double radius) : O(pos), r(radius){ }
 	
 //	mySphere(double, double, double, double);
-	virtual bool intersect(const myRay &);
+	virtual bool intersect(const myRay &, double &);
 	virtual double minIntersectPos(const myRay &);
 	virtual myVector getNorm(const myPoint &);
 
@@ -30,4 +30,14 @@ inline double mySphere::minIntersectPos(const myRay & ray) {
 	
 	double min_d = (-1) * ray.getDir() * (ray.getOrigin() - this->O) - sqrt(root);
 	return (min_d > 0) ? min_d : -1;
+}
+inline bool mySphere::intersect(const myRay & ray, double & distance) {
+	double root = (ray.getDir() * (ray.getOrigin() - this->O)) * (ray.getDir() * (ray.getOrigin() - this->O))
+		- (ray.getDir() * ray.getDir()) * ((ray.getOrigin() - this->O) * (ray.getOrigin() - this->O) - this->r * this->r);
+	if (root < 0) return false;
+	double min_d = (-1) * ray.getDir() * (ray.getOrigin() - this->O) - sqrt(root);
+	if (min_d <= 0)
+		return false;	
+	distance = min_d;
+	return true;
 }

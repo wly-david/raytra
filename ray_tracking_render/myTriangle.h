@@ -18,7 +18,7 @@ public:
 		assert (Norm.length () != 0.0);
 		Norm.normalize();
 	}
-	virtual bool intersect(const myRay &);
+	virtual bool intersect(const myRay &, double &);
 	virtual double minIntersectPos(const myRay &);
 	virtual myVector getNorm(const myPoint &);
 
@@ -41,4 +41,19 @@ inline double myTriangle::minIntersectPos(const myRay & ray) {
 	if ((crossProduct(a - c, x - c) * Norm) < 0)
 		return -1;
 	return dis;
+}
+
+inline bool myTriangle::intersect(const myRay & ray, double & distance) {
+	double dis = (a - ray.getOrigin()) * Norm / (ray.getDir() * Norm);
+	if (dis <= 0)
+		return false;
+	myPoint x = ray.getOrigin() + dis * ray.getDir();
+	if ((crossProduct(b - a, x - a) * Norm) < 0)
+		return false;
+	if ((crossProduct(c - b, x - b) * Norm) < 0)
+		return false;
+	if ((crossProduct(a - c, x - c) * Norm) < 0)
+		return false;
+	distance = dis;
+	return true;
 }

@@ -13,7 +13,7 @@ public:
 	myMaterial * const getMaterial() const {
 		return this->material;
 	}
-	virtual bool intersect(const myRay &) = 0;
+	virtual bool intersect(const myRay &, double & distance) = 0;
 	virtual double minIntersectPos(const myRay &) = 0;
 	virtual myVector getNorm(const myPoint &) = 0;
 	virtual ~mySurface(void) { }

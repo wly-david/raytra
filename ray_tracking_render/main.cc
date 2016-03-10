@@ -23,7 +23,7 @@
 // a method on it: Parser::read_wavefront_file().
 //
 void read_wavefront_file (
-    const char *file,
+    const string file,
     vector< int > &tris,
     vector< myPoint > &verts)
 {
@@ -31,8 +31,11 @@ void read_wavefront_file (
     tris.clear ();
     verts.clear ();
     ifstream in(file);
-	if(!in.good())
-		cerr << "Opening the WaveFront file failed!" << endl;
+	cout << file << endl;
+    if (! in.is_open ()) {  // if it's not open, error out.
+        cerr << "can't open obj file" << endl;
+		return;
+    }
     char buffer[1025];
     string cmd;
     for (int line=1; in.good(); line++) {
@@ -150,7 +153,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
 {
     
     ifstream inFile(filname);    // open the file
-    string line;    
+    string line; 
     if (! inFile.is_open ()) {  // if it's not open, error out.
         cerr << "can't open scene file" << endl;
         exit (-1);
@@ -161,7 +164,10 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
     vector< int > tris;
     vector< myPoint > verts;
     while (! inFile.eof ()) {   // go through every line in the file until finished
-        getline (inFile, line); // get the line        
+        getline (inFile, line); // get the line
+		if(!line.empty() && *line.rbegin() == '\r') {
+			line.erase( line.length()-1, 1);
+		}
         switch (line[0])  {     // we'll decide which command based on the first character
             // geometry types:
             //
@@ -296,8 +302,13 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &Su
                 break;
 			}
 			case 'w': {
-				string filename = line.substr(2, line.length() - 2);
-				read_wavefront_file (filename.c_str(), tris, verts);
+				int pos = line.find_last_of(".");
+				if(line.substr(pos + 1).compare("obj") != 0) {
+					std::cerr << "Wrong obj filename!" << std::endl;
+					break;
+				} 
+				const string filename = line.substr(2, pos + 4);
+				read_wavefront_file (filename, tris, verts);
 #ifdef IM_DEBUGGING
 				cout <<"tris num: " << tris.size() / 3 << endl;
 				cout <<"verts num: " << verts.size() << endl;
@@ -348,7 +359,6 @@ int main (int argc, char *argv[])
         cout << "usage: raytra scenefile outputimage" << endl;
 		return -1;
     }
-    
 	myCamera camera;
 	
 	ALight* ambient = NULL;
@@ -372,5 +382,7 @@ int main (int argc, char *argv[])
 	for(vector<myMaterial*>::iterator it = Materials.begin(); it != Materials.end(); ++it) {
 		delete (*it);
 	}
+	if (ambient != NULL)
+		delete ambient;
     return 0;
 }
