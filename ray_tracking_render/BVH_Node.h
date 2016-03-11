@@ -7,7 +7,7 @@ class BVH_Node
 	BVH_Node * left;
 	BVH_Node * right;
 	myPoint center, min_, max_;
-
+	static int num;
 
 public:
 	BVH_Node(void) { }

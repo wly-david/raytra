@@ -63,8 +63,8 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, cons
 			}
 		}
 	}
-	if (render_model == 3 && root->getLeft() != NULL)
-		return findIntersection(ray, min_t, max_t, ray_type, distance, root->getRight());
+	else if (render_model == 3 && root->getLeft() != NULL)
+		return findIntersection(ray, min_t, max_t, ray_type, distance, root->getLeft());
 	if (current > min_t && current < distance) {
 		distance = current;
 		return surface;
@@ -129,9 +129,11 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 	mySurface* intersectedSurface = (render_model < 2) ? 
 		findIntersection(ray, min_t, max_t, ray_type, distance, nodes) : 
 		findIntersection(ray, min_t, max_t, ray_type, distance, root);
-	mySurface* plane = findIntersection(ray, min_t, distance, ray_type, distance, root);
-	if (plane != NULL)
-		intersectedSurface = plane;
+	if (planes.size() > 0) {
+		mySurface* plane = findIntersection(ray, min_t, distance, ray_type, distance, planes);
+		if (plane != NULL)
+			intersectedSurface = plane;
+	}
 	if (intersectedSurface == NULL)
 		return myVector(0,0,0);	
 
@@ -148,11 +150,13 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 		double dis2light = ((*it)->getPos() - intersectPos) * lightRay.getDir();
 		double dis2obs;
 		mySurface* obstruction = (render_model < 2) ? 
-			findIntersection(ray, 0.0001, dis2light, SHADOW_RAY, dis2obs, nodes) : 
-			findIntersection(ray, 0.0001, dis2light, SHADOW_RAY, dis2obs, root);
-		mySurface* plane = findIntersection(ray, 0.0001, dis2light, SHADOW_RAY, dis2obs, root);
-		if (plane != NULL)
-			obstruction = plane;
+			findIntersection(lightRay, 0.0001, dis2light, SHADOW_RAY, dis2obs, nodes) : 
+			findIntersection(lightRay, 0.0001, dis2light, SHADOW_RAY, dis2obs, root);
+		if (planes.size() > 0) {
+			mySurface* plane = findIntersection(lightRay, 0.0001, dis2light, SHADOW_RAY, dis2obs, planes);
+			if (plane != NULL)
+				obstruction = plane;
+		}
 		shadowed = (obstruction != NULL);
 #endif
 		if (!shadowed){
