@@ -388,9 +388,9 @@ int main (int argc, char *argv[])
 	for(vector<mySurface*>::iterator it = Surfaces.begin(); it != Surfaces.end(); ++it) {
 		delete (*it);
 	}
-	for(vector<mySurface*>::iterator it = BBoxes.begin(); it != BBoxes.end(); ++it) {
+	/*for(vector<mySurface*>::iterator it = BBoxes.begin(); it != BBoxes.end(); ++it) {
 		delete (*it);
-	}
+	}*/
 	for(vector<myLight*>::iterator it = Lights.begin(); it != Lights.end(); ++it) {
 		delete (*it);
 	}

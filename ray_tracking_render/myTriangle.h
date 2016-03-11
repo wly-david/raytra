@@ -27,11 +27,11 @@ public:
 			maxp[i] = a[i];
 			if (b[i] < minp[i])
 				minp[i] = b[i];
-			if (b[i] > minp[i])
+			if (b[i] > maxp[i])
 				maxp[i] = b[i];
 			if (c[i] < minp[i])
 				minp[i] = b[i];
-			if (c[i] > minp[i])
+			if (c[i] > maxp[i])
 				maxp[i] = b[i];
 		};
 		
