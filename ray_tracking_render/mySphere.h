@@ -13,8 +13,8 @@ public:
 	
 //	mySphere(double, double, double, double);
 	virtual mySurface * generateBBox(){
-		myPoint minP(O[0] - r, O[1] - r, O[2] - r);
-		myPoint maxP(O[0] + r, O[1] + r, O[2] + r);
+		myPoint minP(O[0] - r - 0.0001, O[1] - r - 0.0001, O[2] - r - 0.0001);
+		myPoint maxP(O[0] + r + 0.0001, O[1] + r + 0.0001, O[2] + r + 0.0001);
 		myBBox * bbox = new myBBox(minP, maxP);
 		bbox->setMaterial(this->getMaterial());
 		return bbox;

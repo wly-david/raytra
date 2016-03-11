@@ -1,6 +1,7 @@
 #pragma once
 #include "mySurface.h"
 #include "myBBox.h"
+#include<limits>
 class myTriangle :
 	public mySurface
 {
@@ -34,8 +35,8 @@ public:
 				maxp[i] = b[i];
 		};
 		
-		myPoint minP(minp[0], minp[1], minp[2]);
-		myPoint maxP(maxp[0], maxp[1], maxp[2]);
+		myPoint minP(minp[0] - 0.0001, minp[1] - 0.0001, minp[2] - 0.0001);
+		myPoint maxP(maxp[0] + 0.0001, maxp[1] + 0.0001, maxp[2] + 0.0001);
 		myBBox * bbox = new myBBox(minP, maxP);
 		bbox->setMaterial(this->getMaterial());
 		return bbox;

@@ -220,6 +220,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &BB
 				assert(lastMaterialLoaded != NULL);
 				plane->setMaterial(lastMaterialLoaded);
 				Surfaces.push_back(plane);
+				BBoxes.push_back(plane);
                 break;
 			}
             // camera:
@@ -376,6 +377,7 @@ int main (int argc, char *argv[])
     parseSceneFile (argv[1], camera, BBoxes, Surfaces, Materials, Lights, ambient);
     assert (Materials.size () != 0); // make sure there are some materials
     assert (Surfaces.size () != 0); // make sure there are some surfaces
+    assert (BBoxes.size () != 0); // make sure there are some BBoxes
     assert (Lights.size () != 0); // make sure there are some lights
 	if (render_model == 0)
 		camera.renderScene(Surfaces, Lights, ambient);
@@ -384,6 +386,9 @@ int main (int argc, char *argv[])
 	camera.writeImage(argv[2]);
 	
 	for(vector<mySurface*>::iterator it = Surfaces.begin(); it != Surfaces.end(); ++it) {
+		delete (*it);
+	}
+	for(vector<mySurface*>::iterator it = BBoxes.begin(); it != BBoxes.end(); ++it) {
 		delete (*it);
 	}
 	for(vector<myLight*>::iterator it = Lights.begin(); it != Lights.end(); ++it) {
