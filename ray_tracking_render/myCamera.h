@@ -17,7 +17,8 @@
 	#define REFL_TIMES 10
 #endif
 #define SHADOW_RAY 1
-#define REGULAR_RAY 0
+#define CAMERA_RAY 0
+#define REFLECTION_RAY 2
 
 using namespace Imf;
 using namespace Imath;
@@ -36,6 +37,7 @@ class myCamera
 
 	double l, r, t, b; // or just w,h
 
+	int render_model;
 	Array2D<Rgba> image;
 
 public:
@@ -48,11 +50,11 @@ public:
 
     myRay generateRay (const int i, const int j);
     
-	void renderScene (std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
+	void renderScene (std::vector<BVH_Node*> &, std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
 
-	mySurface* findIntersection(const myRay &, const double, const double, const int, double &, std::vector< mySurface * > &);
+	mySurface* findIntersection(const myRay &, const double, const double, const int, double &, std::vector<BVH_Node*> &, std::vector< mySurface * > &);
 
-	myVector recursive_L (const myRay &, double, double, int, int, std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
+	myVector recursive_L (const myRay &, double, double, int, int, std::vector<BVH_Node*> &, std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
 
     void writeImage (const char *sceneFile);
     
@@ -62,6 +64,10 @@ public:
         px.g = g;
         px.b = b;
         px.a = 1.0;
+    }
+	
+    void setModel (int m) {
+		render_model = m;
     }
 };
 

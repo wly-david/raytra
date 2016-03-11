@@ -149,7 +149,7 @@ double getTokenAsFloat (string inString, int whichToken)
 // only use "correct" scene files.
 //
 //
-void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &BBoxes, vector< mySurface * > &Surfaces, vector< myMaterial * > &Materials, vector< myLight * > &Lights, ALight * &ambient)
+void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes, vector< mySurface * > &Planes, vector< myMaterial * > &Materials, vector< myLight * > &Lights, ALight * &ambient)
 {
     
     ifstream inFile(filname);    // open the file
@@ -183,8 +183,10 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &BB
 				mySphere *sphere = new mySphere(myPoint(x, y, z), r);
 				assert(lastMaterialLoaded != NULL);
 				sphere->setMaterial(lastMaterialLoaded);
-				Surfaces.push_back(sphere);
-				BBoxes.push_back(sphere->generateBBox());
+				BVH_Node *object = new BVH_Node(sphere);
+				BVH_Node *leaf = new BVH_Node(sphere->generateBBox());
+				leaf->setLeft(object);
+				BBoxes.push_back(leaf);
 #ifdef IM_DEBUGGING
                 // if we're debugging, show what we got:
                 cout << "got a sphere with ";
@@ -206,8 +208,10 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &BB
 				myTriangle *triangle = new myTriangle(myPoint(a1, b1, c1), myPoint(a2, b2, c2), myPoint(a3, b3, c3));
 				assert(lastMaterialLoaded != NULL);
 				triangle->setMaterial(lastMaterialLoaded);
-				Surfaces.push_back(triangle);
-				BBoxes.push_back(triangle->generateBBox());
+				BVH_Node *object = new BVH_Node(triangle);
+				BVH_Node *leaf = new BVH_Node(triangle->generateBBox());
+				leaf->setLeft(object);
+				BBoxes.push_back(leaf);
 				break;
 			}
             case 'p': {  // plane
@@ -219,8 +223,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &BB
 				myPlane *plane = new myPlane(myVector(nx, ny, nz), d);
 				assert(lastMaterialLoaded != NULL);
 				plane->setMaterial(lastMaterialLoaded);
-				Surfaces.push_back(plane);
-				BBoxes.push_back(plane);
+				Planes.push_back(plane);
                 break;
 			}
             // camera:
@@ -325,8 +328,10 @@ void parseSceneFile (char *filname, myCamera & camera, vector< mySurface * > &BB
 						myTriangle *triangle = new myTriangle(triPoints[0], triPoints[1], triPoints[2]);
 						assert(lastMaterialLoaded != NULL);
 						triangle->setMaterial(lastMaterialLoaded);
-						Surfaces.push_back(triangle);
-						BBoxes.push_back(triangle->generateBBox());
+						BVH_Node *object = new BVH_Node(triangle);
+						BVH_Node *leaf = new BVH_Node(triangle->generateBBox());
+						leaf->setLeft(object);
+						BBoxes.push_back(leaf);
 					}
 				}
 			}
@@ -368,29 +373,26 @@ int main (int argc, char *argv[])
 		render_model = atoi(argv[3]);
 	}
 	myCamera camera;
-	
+	camera.setModel(render_model);
 	ALight* ambient = NULL;
-	vector<mySurface*> BBoxes;
-	vector<mySurface*> Surfaces;
+	vector<BVH_Node*> BBoxes;
+	vector<mySurface*> Planes;
     vector<myMaterial*> Materials;
 	vector<myLight*> Lights;
-    parseSceneFile (argv[1], camera, BBoxes, Surfaces, Materials, Lights, ambient);
+    parseSceneFile (argv[1], camera, BBoxes, Planes, Materials, Lights, ambient);
     assert (Materials.size () != 0); // make sure there are some materials
-    assert (Surfaces.size () != 0); // make sure there are some surfaces
+    assert (Planes.size () != 0); // make sure there are some surfaces
     assert (BBoxes.size () != 0); // make sure there are some BBoxes
     assert (Lights.size () != 0); // make sure there are some lights
-	if (render_model == 0)
-		camera.renderScene(Surfaces, Lights, ambient);
-	else
-		camera.renderScene(BBoxes, Lights, ambient);
+	camera.renderScene(BBoxes, Planes, Lights, ambient);
 	camera.writeImage(argv[2]);
 	
-	for(vector<mySurface*>::iterator it = Surfaces.begin(); it != Surfaces.end(); ++it) {
+	for(vector<mySurface*>::iterator it = Planes.begin(); it != Planes.end(); ++it) {
 		delete (*it);
 	}
-	/*for(vector<mySurface*>::iterator it = BBoxes.begin(); it != BBoxes.end(); ++it) {
+	for(vector<BVH_Node*>::iterator it = BBoxes.begin(); it != BBoxes.end(); ++it) {
 		delete (*it);
-	}*/
+	}
 	for(vector<myLight*>::iterator it = Lights.begin(); it != Lights.end(); ++it) {
 		delete (*it);
 	}

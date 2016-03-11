@@ -30,9 +30,9 @@ public:
 			if (b[i] > maxp[i])
 				maxp[i] = b[i];
 			if (c[i] < minp[i])
-				minp[i] = b[i];
+				minp[i] = c[i];
 			if (c[i] > maxp[i])
-				maxp[i] = b[i];
+				maxp[i] = c[i];
 		};
 		
 		myPoint minP(minp[0] - 0.0001, minp[1] - 0.0001, minp[2] - 0.0001);
