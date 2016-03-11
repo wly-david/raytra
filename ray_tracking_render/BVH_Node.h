@@ -4,21 +4,39 @@
 class BVH_Node
 {
 	mySurface * surface;
-	bool lastbbox;
 	BVH_Node * left;
 	BVH_Node * right;
+	myPoint center, min_, max_;
+
 
 public:
 	BVH_Node(void) { }
-	BVH_Node(mySurface * s) : surface(s), lastbbox(true), left(NULL), right(NULL) { }
+	BVH_Node(mySurface * s) : surface(s), left(NULL), right(NULL) { }
+	BVH_Node(myBBox * b) : surface(b), left(NULL), right(NULL) {
+		min_ = b->getMin();
+		max_= b->getMax();
+		center = myPoint((min_[0] + max_[0])/2, (min_[1] + max_[1])/2, (min_[1] + max_[1])/2);
+	}
 	void setLeft(BVH_Node * l) { left = l; }
 	void setRight(BVH_Node * r) { right = r; }
-	BVH_Node * getLeft() { return left; }
-	BVH_Node * getRight() { return right; }
-	bool isLeaf() { return lastbbox; };
-	mySurface * getSurface() { return surface; }
+	BVH_Node * getLeft() const { return left; }
+	BVH_Node * getRight() const { return right; }
+	mySurface * getSurface() const { return surface; }
 	~BVH_Node(void) {
 		delete surface;
 	}
+    friend bool cmp_x(const BVH_Node *, const BVH_Node *);
+    friend bool cmp_y(const BVH_Node *, const BVH_Node *);
+    friend bool cmp_z(const BVH_Node *, const BVH_Node *);
+    friend BVH_Node * createTree(std::vector<BVH_Node*> &, int, int, int);
 };
 
+inline bool cmp_x(const BVH_Node * n1, const BVH_Node * n2) {
+	return n1->center[0] < n2->center[0];
+}
+inline bool cmp_y(const BVH_Node * n1, const BVH_Node * n2) {
+	return n1->center[1] < n2->center[1];
+}
+inline bool cmp_z(const BVH_Node * n1, const BVH_Node * n2) {
+	return n1->center[2] < n2->center[2];
+}

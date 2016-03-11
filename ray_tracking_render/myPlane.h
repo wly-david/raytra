@@ -14,10 +14,9 @@ public:
 		d = dis;
 	}
 	
-	virtual mySurface * generateBBox() { return NULL;}
 	virtual bool intersect(const myRay &, double & distance);
 	virtual double minIntersectPos(const myRay &);
-	virtual myVector getNorm(const myPoint &);
+	myVector virtual getNorm (const myPoint &) const;
 
 	/*myPlane(const mySphere sphere, const myPoint pos) {
 		this->setMaterial(sphere.getMaterial());
@@ -29,7 +28,7 @@ public:
 };
 
 
-inline myVector myPlane::getNorm(const myPoint &pos) {
+inline myVector myPlane::getNorm(const myPoint &pos) const {
 	return Norm;
 }
 

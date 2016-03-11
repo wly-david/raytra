@@ -11,10 +11,15 @@ class myBBox :
 public:
 	myBBox(void) { }
 	myBBox(myPoint minP, myPoint maxP) :min_(minP), max_(maxP) { }
-	virtual mySurface * generateBBox() { return NULL; }
+	myPoint getMin() const {
+		return min_;
+	}
+	myPoint getMax() const {
+		return max_;
+	}
 	virtual bool intersect(const myRay &, double & distance);
 	virtual double minIntersectPos(const myRay &);
-	virtual myVector getNorm(const myPoint &);
+	virtual myVector getNorm (const myPoint &) const;
 
 	~myBBox(void) { }
 };
@@ -71,7 +76,7 @@ inline double myBBox::minIntersectPos(const myRay &ray) {
 }
 
 
-inline myVector myBBox::getNorm(const myPoint &pos) {
+inline myVector myBBox::getNorm(const myPoint &pos) const {
 	for(int i = 0; i < 3; i ++) {	
 		if (fabs(pos[i] - min_[i]) < 0.0001)
 			return (-1) * norm[i];

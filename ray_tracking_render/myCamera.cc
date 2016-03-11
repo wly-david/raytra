@@ -32,10 +32,49 @@ void myCamera::init(myPoint p, myVector v, double d, double iw, double ih, int p
     }
 }
 
+mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, const double max_t,
+									  const int ray_type, double &distance,
+									  BVH_Node * root){
+	double current;
+	mySurface * surface = root->getSurface();
+	if (!surface->intersect(ray, current))
+		return NULL;
+	if (root->getRight() != NULL) {
+		double left_d;
+		mySurface * left_s = findIntersection(ray, min_t, max_t, ray_type, left_d, root->getLeft());
+		double right_d;
+		mySurface * right_s = findIntersection(ray, min_t, max_t, ray_type, right_d, root->getRight());
+		if (left_s == NULL) {
+			distance = right_d;
+			return right_s;
+		}
+		else if (right_s == NULL) {
+			distance = left_d;
+			return left_s;
+		}
+		else {
+			if (left_d < right_d) {
+				distance = left_d;
+				return left_s;
+			}
+			else {
+				distance = right_d;
+				return right_s;
+			}
+		}
+	}
+	if (render_model == 3 && root->getLeft() != NULL)
+		return findIntersection(ray, min_t, max_t, ray_type, distance, root->getRight());
+	if (current > min_t && current < distance) {
+		distance = current;
+		return surface;
+	}
+	return NULL;
+}
 
 mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, const double max_t,
-									  const int ray_type, double &distance, 
-									  std::vector<BVH_Node*> & nodes, std::vector< mySurface * > &planes){
+									  const int ray_type, double &distance,
+									  std::vector<BVH_Node*> & nodes){
 	mySurface* intersection = NULL;
 	double min_d = max_t;
 	for(std::vector<BVH_Node*>::iterator it = nodes.begin(); it != nodes.end(); ++it) {
@@ -54,6 +93,16 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, cons
 			}
 		}
 	}
+	distance = min_d;
+	return intersection;
+}
+
+
+mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, const double max_t,
+									  const int ray_type, double &distance,
+									  std::vector< mySurface * > &planes){
+	mySurface* intersection = NULL;
+	double min_d = max_t;
 	for(std::vector<mySurface*>::iterator it = planes.begin(); it != planes.end(); ++it) {
 		double current;
 		if ((*it)->intersect(ray, current)) {
@@ -70,14 +119,19 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, cons
 }
 
 myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
-								int recurse_limit, int ray_type, 
+								int recurse_limit, int ray_type, BVH_Node * root,
 								std::vector<BVH_Node*> & nodes, std::vector< mySurface * > &planes,
 								std::vector< myLight * > &lights, ALight * ambient) {
 	if (recurse_limit == 0)
 		return myVector(0,0,0);
 	
 	double distance = max_t;
-	mySurface* intersectedSurface = findIntersection(ray, min_t, max_t, ray_type, distance, nodes, planes);
+	mySurface* intersectedSurface = (render_model < 2) ? 
+		findIntersection(ray, min_t, max_t, ray_type, distance, nodes) : 
+		findIntersection(ray, min_t, max_t, ray_type, distance, root);
+	mySurface* plane = findIntersection(ray, min_t, distance, ray_type, distance, root);
+	if (plane != NULL)
+		intersectedSurface = plane;
 	if (intersectedSurface == NULL)
 		return myVector(0,0,0);	
 
@@ -93,7 +147,12 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 #ifndef shadowoff
 		double dis2light = ((*it)->getPos() - intersectPos) * lightRay.getDir();
 		double dis2obs;
-		mySurface* obstruction =  findIntersection(lightRay, 0.0001, dis2light, SHADOW_RAY, dis2obs, nodes, planes);		
+		mySurface* obstruction = (render_model < 2) ? 
+			findIntersection(ray, 0.0001, dis2light, SHADOW_RAY, dis2obs, nodes) : 
+			findIntersection(ray, 0.0001, dis2light, SHADOW_RAY, dis2obs, root);
+		mySurface* plane = findIntersection(ray, 0.0001, dis2light, SHADOW_RAY, dis2obs, root);
+		if (plane != NULL)
+			obstruction = plane;
 		shadowed = (obstruction != NULL);
 #endif
 		if (!shadowed){
@@ -115,7 +174,7 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 
 		myVector reflLight = recursive_L(reflRay,
 			0.0001, std::numeric_limits<double>::infinity(),
-			recurse_limit - 1, REFLECTION_RAY, nodes, planes, lights, ambient);
+			recurse_limit - 1, REFLECTION_RAY, root, nodes, planes, lights, ambient);
 
 		myVector km = intersectedSurface->getMaterial()->getRefl();
 		color = color + myVector(km[0] * reflLight[0], km[1] * reflLight[1], km[2] * reflLight[2]);
@@ -123,7 +182,7 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 	return color;
 }
 
-void myCamera::renderScene (std::vector<BVH_Node*> & nodes, std::vector< mySurface * > &surfaces,
+void myCamera::renderScene (BVH_Node * root, std::vector<BVH_Node*> & nodes, std::vector< mySurface * > &surfaces,
 							std::vector< myLight * > &lights, ALight * ambient) {
 	
     // std::cout << "rendering";    
@@ -135,7 +194,7 @@ void myCamera::renderScene (std::vector<BVH_Node*> & nodes, std::vector< mySurfa
             //if ((j * nx + i) % printProgress == 0)
             //    std::cout << ".";
 			myRay ray = generateRay(i, j);
-			myVector color = recursive_L(ray, 0, std::numeric_limits<double>::infinity(), REFL_TIMES, CAMERA_RAY, nodes, surfaces, lights, ambient);
+			myVector color = recursive_L(ray, 0, std::numeric_limits<double>::infinity(), REFL_TIMES, CAMERA_RAY, root, nodes, surfaces, lights, ambient);
 			setPixel (i, j, color[0], color[1], color[2]);
 		}
      }

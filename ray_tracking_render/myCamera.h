@@ -50,11 +50,21 @@ public:
 
     myRay generateRay (const int i, const int j);
     
-	void renderScene (std::vector<BVH_Node*> &, std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
+	void renderScene (BVH_Node *, std::vector<BVH_Node*> &,
+		std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
+	
+	mySurface* findIntersection(const myRay &, const double, const double, const int, double &,
+		std::vector<BVH_Node*> &);
 
-	mySurface* findIntersection(const myRay &, const double, const double, const int, double &, std::vector<BVH_Node*> &, std::vector< mySurface * > &);
+	mySurface* findIntersection(const myRay &, const double, const double, const int, double &,
+		BVH_Node *);
 
-	myVector recursive_L (const myRay &, double, double, int, int, std::vector<BVH_Node*> &, std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
+	mySurface* findIntersection(const myRay &, const double, const double, const int, double &,
+		std::vector< mySurface * > &);
+
+	myVector recursive_L (const myRay &, double, double, int, int,
+		BVH_Node *, std::vector<BVH_Node*> &,
+		std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
 
     void writeImage (const char *sceneFile);
     

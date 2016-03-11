@@ -20,7 +20,7 @@ public:
 		assert (Norm.length () != 0.0);
 		Norm.normalize();
 	}
-	virtual mySurface * generateBBox(){
+	virtual myBBox * generateBBox(){
 		double minp[3], maxp[3];
 		for(int i = 0; i < 3; i ++) {
 			minp[i] = a[i];
@@ -42,13 +42,13 @@ public:
 		return bbox;
 	}
 	virtual bool intersect(const myRay &, double &);
-	virtual double minIntersectPos(const myRay &);
-	virtual myVector getNorm(const myPoint &);
+	virtual double minIntersectPos(const myRay &);	
+	virtual myVector getNorm (const myPoint &) const;
 
 	virtual ~myTriangle(void) { }
 };
 
-inline myVector myTriangle::getNorm(const myPoint &pos) {
+inline myVector myTriangle::getNorm(const myPoint &pos) const {
 	return Norm;
 }
 

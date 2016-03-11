@@ -184,7 +184,8 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 				assert(lastMaterialLoaded != NULL);
 				sphere->setMaterial(lastMaterialLoaded);
 				BVH_Node *object = new BVH_Node(sphere);
-				BVH_Node *leaf = new BVH_Node(sphere->generateBBox());
+				myBBox *bbox = sphere->generateBBox();
+				BVH_Node *leaf = new BVH_Node(bbox);
 				leaf->setLeft(object);
 				BBoxes.push_back(leaf);
 #ifdef IM_DEBUGGING
@@ -209,7 +210,8 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 				assert(lastMaterialLoaded != NULL);
 				triangle->setMaterial(lastMaterialLoaded);
 				BVH_Node *object = new BVH_Node(triangle);
-				BVH_Node *leaf = new BVH_Node(triangle->generateBBox());
+				myBBox *bbox = triangle->generateBBox();
+				BVH_Node *leaf = new BVH_Node(bbox);
 				leaf->setLeft(object);
 				BBoxes.push_back(leaf);
 				break;
@@ -329,7 +331,8 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 						assert(lastMaterialLoaded != NULL);
 						triangle->setMaterial(lastMaterialLoaded);
 						BVH_Node *object = new BVH_Node(triangle);
-						BVH_Node *leaf = new BVH_Node(triangle->generateBBox());
+						myBBox *bbox = triangle->generateBBox();
+						BVH_Node *leaf = new BVH_Node(bbox);
 						leaf->setLeft(object);
 						BBoxes.push_back(leaf);
 					}
@@ -380,11 +383,12 @@ int main (int argc, char *argv[])
     vector<myMaterial*> Materials;
 	vector<myLight*> Lights;
     parseSceneFile (argv[1], camera, BBoxes, Planes, Materials, Lights, ambient);
-    assert (Materials.size () != 0); // make sure there are some materials
-    assert (Planes.size () != 0); // make sure there are some surfaces
-    assert (BBoxes.size () != 0); // make sure there are some BBoxes
-    assert (Lights.size () != 0); // make sure there are some lights
-	camera.renderScene(BBoxes, Planes, Lights, ambient);
+    //assert (Materials.size () != 0); // make sure there are some materials
+    //assert (Planes.size () != 0); // make sure there are some surfaces
+    //assert (BBoxes.size () != 0); // make sure there are some BBoxes
+    //assert (Lights.size () != 0); // make sure there are some lights
+	BVH_Node * root = createTree(BBoxes, 0, BBoxes.size(), 0);
+	camera.renderScene(root, BBoxes, Planes, Lights, ambient);
 	camera.writeImage(argv[2]);
 	
 	for(vector<mySurface*>::iterator it = Planes.begin(); it != Planes.end(); ++it) {

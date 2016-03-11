@@ -12,7 +12,7 @@ public:
 	mySphere (const myPoint & pos,const double radius) : O(pos), r(radius){ }
 	
 //	mySphere(double, double, double, double);
-	virtual mySurface * generateBBox(){
+	virtual myBBox * generateBBox(){
 		myPoint minP(O[0] - r - 0.0001, O[1] - r - 0.0001, O[2] - r - 0.0001);
 		myPoint maxP(O[0] + r + 0.0001, O[1] + r + 0.0001, O[2] + r + 0.0001);
 		myBBox * bbox = new myBBox(minP, maxP);
@@ -21,12 +21,12 @@ public:
 	}
 	virtual bool intersect(const myRay &, double &);
 	virtual double minIntersectPos(const myRay &);
-	virtual myVector getNorm(const myPoint &);
+	virtual myVector getNorm (const myPoint &) const;
 
 	virtual ~mySphere(void) { }
 };
 
-inline myVector mySphere::getNorm(const myPoint &pos) {
+inline myVector mySphere::getNorm(const myPoint &pos) const {
 	return (pos - this->O).normalize();
 }
 
