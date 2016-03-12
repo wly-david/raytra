@@ -31,7 +31,6 @@ void read_wavefront_file (
     tris.clear ();
     verts.clear ();
     ifstream in(file);
-	cout << file << endl;
     if (! in.is_open ()) {  // if it's not open, error out.
         cerr << "can't open obj file" << endl;
 		return;
