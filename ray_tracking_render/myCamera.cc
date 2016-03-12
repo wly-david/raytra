@@ -32,39 +32,30 @@ void myCamera::init(myPoint p, myVector v, double d, double iw, double ih, int p
     }
 }
 
-mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, const double max_t,
-									  const int ray_type, double &distance,
+mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, double &distance,
+									  const int ray_type,
 									  BVH_Node * root){
 	double current;
 	mySurface * surface = root->getSurface();
 	if (!surface->intersect(ray, current))
 		return NULL;
+	if (current >= distance)
+		return NULL;
 	if (root->getRight() != NULL) {
-		double left_d;
-		mySurface * left_s = findIntersection(ray, min_t, max_t, ray_type, left_d, root->getLeft());
-		double right_d;
-		mySurface * right_s = findIntersection(ray, min_t, max_t, ray_type, right_d, root->getRight());
-		if (left_s == NULL) {
+		mySurface * left_s = findIntersection(ray, min_t, distance, ray_type, root->getLeft());
+		double right_d = distance;
+		mySurface * right_s = findIntersection(ray, min_t, right_d, ray_type, root->getRight());
+		if (right_d < distance) {
 			distance = right_d;
 			return right_s;
 		}
-		else if (right_s == NULL) {
-			distance = left_d;
+		else {
 			return left_s;
 		}
-		else {
-			if (left_d < right_d) {
-				distance = left_d;
-				return left_s;
-			}
-			else {
-				distance = right_d;
-				return right_s;
-			}
-		}
 	}
-	else if (render_model == 3 && root->getLeft() != NULL)
-		return findIntersection(ray, min_t, max_t, ray_type, distance, root->getLeft());
+	if (render_model == 3 && root->getLeft() != NULL) {
+		return findIntersection(ray, min_t, distance, ray_type, root->getLeft());
+	}
 	if (current > min_t && current < distance) {
 		distance = current;
 		return surface;
@@ -72,11 +63,10 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, cons
 	return NULL;
 }
 
-mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, const double max_t,
-									  const int ray_type, double &distance,
+mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, double &distance,
+									  const int ray_type, 
 									  std::vector<BVH_Node*> & nodes){
 	mySurface* intersection = NULL;
-	double min_d = max_t;
 	for(std::vector<BVH_Node*>::iterator it = nodes.begin(); it != nodes.end(); ++it) {
 		double current;
 		mySurface * surface = NULL;
@@ -85,36 +75,33 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, cons
 		else if (render_model == 0)
 			surface = (*it)->getLeft()->getSurface();
 		if (surface->intersect(ray, current)) {
-			if (current > min_t && current < min_d) {
+			if (current > min_t && current < distance) {
 				intersection = surface;
-				min_d = current;
+				distance = current;
 				if (ray_type == SHADOW_RAY)
 					break;
 			}
 		}
 	}
-	distance = min_d;
 	return intersection;
 }
 
 
-mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, const double max_t,
-									  const int ray_type, double &distance,
+mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, double &distance,
+									  const int ray_type,
 									  std::vector< mySurface * > &planes){
 	mySurface* intersection = NULL;
-	double min_d = max_t;
 	for(std::vector<mySurface*>::iterator it = planes.begin(); it != planes.end(); ++it) {
 		double current;
 		if ((*it)->intersect(ray, current)) {
-			if (current > min_t && current < min_d) {
+			if (current > min_t && current < distance) {
 				intersection = *it;
-				min_d = current;
+				distance = current;
 				if (ray_type == SHADOW_RAY)
 					break;
 			}
 		}
 	}
-	distance = min_d;
 	return intersection;
 }
 
@@ -127,10 +114,10 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 	
 	double distance = max_t;
 	mySurface* intersectedSurface = (render_model < 2) ? 
-		findIntersection(ray, min_t, max_t, ray_type, distance, nodes) : 
-		findIntersection(ray, min_t, max_t, ray_type, distance, root);
+		findIntersection(ray, min_t, distance, ray_type,  nodes) : 
+		findIntersection(ray, min_t, distance, ray_type, root);
 	if (planes.size() > 0) {
-		mySurface* plane = findIntersection(ray, min_t, distance, ray_type, distance, planes);
+		mySurface* plane = findIntersection(ray, min_t, distance, ray_type, planes);
 		if (plane != NULL)
 			intersectedSurface = plane;
 	}
@@ -148,12 +135,12 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 		bool shadowed = false;
 #ifndef shadowoff
 		double dis2light = ((*it)->getPos() - intersectPos) * lightRay.getDir();
-		double dis2obs;
+		double dis2obs = dis2light;
 		mySurface* obstruction = (render_model < 2) ? 
-			findIntersection(lightRay, 0.0001, dis2light, SHADOW_RAY, dis2obs, nodes) : 
-			findIntersection(lightRay, 0.0001, dis2light, SHADOW_RAY, dis2obs, root);
+			findIntersection(lightRay, 0.0001, dis2obs, SHADOW_RAY, nodes) : 
+			findIntersection(lightRay, 0.0001, dis2obs, SHADOW_RAY, root);
 		if (planes.size() > 0) {
-			mySurface* plane = findIntersection(lightRay, 0.0001, dis2light, SHADOW_RAY, dis2obs, planes);
+			mySurface* plane = findIntersection(lightRay, 0.0001, dis2obs, SHADOW_RAY, planes);
 			if (plane != NULL)
 				obstruction = plane;
 		}

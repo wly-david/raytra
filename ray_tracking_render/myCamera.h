@@ -53,13 +53,13 @@ public:
 	void renderScene (BVH_Node *, std::vector<BVH_Node*> &,
 		std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
 	
-	mySurface* findIntersection(const myRay &, const double, const double, const int, double &,
+	mySurface* findIntersection(const myRay &, const double, double &, const int,
 		std::vector<BVH_Node*> &);
 
-	mySurface* findIntersection(const myRay &, const double, const double, const int, double &,
+	mySurface* findIntersection(const myRay &, const double, double &, const int,
 		BVH_Node *);
 
-	mySurface* findIntersection(const myRay &, const double, const double, const int, double &,
+	mySurface* findIntersection(const myRay &, const double, double &, const int, 
 		std::vector< mySurface * > &);
 
 	myVector recursive_L (const myRay &, double, double, int, int,

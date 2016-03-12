@@ -68,7 +68,7 @@ inline bool myBBox::intersect(const myRay & ray, double & distance) {
 #endif
 	if (minOfMax <= 0)
 		return false;
-	distance = (maxOfMin <=0) ? minOfMax : maxOfMin;
+	distance = maxOfMin;
 	return true;
 }
 inline double myBBox::minIntersectPos(const myRay &ray) {
