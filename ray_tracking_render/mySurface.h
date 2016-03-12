@@ -14,7 +14,7 @@ public:
 		return this->material;
 	}
 	virtual bool intersect(const myRay &, double & distance) = 0;
-	virtual double minIntersectPos(const myRay &) = 0;
+	//virtual double minIntersectPos(const myRay &) = 0;
 	virtual myVector getNorm (const myPoint &) const =0;
 	virtual ~mySurface(void) { }
 };

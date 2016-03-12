@@ -1,9 +1,7 @@
 #pragma once
 
-#include "myRay.h"
 #include "mySurface.h"
 #include "myLight.h"
-#include "mySphere.h"
 #include "ALight.h"
 #include "BVH_Node.h"
 

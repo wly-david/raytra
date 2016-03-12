@@ -1,6 +1,6 @@
 #pragma once
-#include"mySurface.h"
 #include"myBBox.h"
+#include<vector>
 class BVH_Node
 {
 	mySurface * surface;

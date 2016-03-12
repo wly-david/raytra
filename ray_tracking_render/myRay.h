@@ -1,8 +1,6 @@
 #pragma once
 #include"myPoint.h"
 #include"myVector.h"
-#include<vector>
-#include<cassert>
 
 class myRay
 {
@@ -11,12 +9,10 @@ class myRay
 public:
 	myRay(void) { }
 
-	myRay(const myPoint &p, const myVector &v) :	origin(p), dir(v) {
+	myRay(const myPoint &p, const myVector &v) : origin(p), dir(v) {
 		dir.normalize();
 	}
-
 //	myRay(double, double, double, double, double, double);
-	
     // Get and set functions, for the direction and origin:
     void setDir (const myVector &dir)	{ this->dir = dir; }
     void setOrigin (const myPoint &pnt)	{ this->origin = pnt; }

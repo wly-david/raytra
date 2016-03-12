@@ -1,6 +1,5 @@
 #pragma once
 #include"myLight.h"
-#include"myRay.h"
 class p_light : public myLight
 {
 	myPoint position;
