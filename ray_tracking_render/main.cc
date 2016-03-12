@@ -400,7 +400,7 @@ int main (int argc, char *argv[])
 	for(vector<myMaterial*>::iterator it = Materials.begin(); it != Materials.end(); ++it) {
 		delete (*it);
 	}
-	removeTree(root);
+	//removeTree(root);
 	if (ambient != NULL)
 		delete ambient;
     return 0;

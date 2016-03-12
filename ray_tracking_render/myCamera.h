@@ -12,7 +12,7 @@
 #include <vector>
 
 #ifndef REFL_TIMES
-	#define REFL_TIMES 10
+	#define REFL_TIMES 20
 #endif
 #define SHADOW_RAY 1
 #define CAMERA_RAY 0
