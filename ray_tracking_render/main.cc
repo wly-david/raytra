@@ -365,7 +365,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 
 int main (int argc, char *argv[])
 { 
-	int render_model = 1;
+	int render_model = 3;
     if (argc != 3 && argc != 4) {
         // error condition: 
         cout << "usage: raytra scenefile outputimage" << endl;
@@ -387,13 +387,11 @@ int main (int argc, char *argv[])
     //assert (BBoxes.size () != 0); // make sure there are some BBoxes
     //assert (Lights.size () != 0); // make sure there are some lights
 	BVH_Node * root = createTree(BBoxes, 0, BBoxes.size(), 0);
+
 	camera.renderScene(root, BBoxes, Planes, Lights, ambient);
 	camera.writeImage(argv[2]);
 	
 	for(vector<mySurface*>::iterator it = Planes.begin(); it != Planes.end(); ++it) {
-		delete (*it);
-	}
-	for(vector<BVH_Node*>::iterator it = BBoxes.begin(); it != BBoxes.end(); ++it) {
 		delete (*it);
 	}
 	for(vector<myLight*>::iterator it = Lights.begin(); it != Lights.end(); ++it) {
@@ -402,6 +400,7 @@ int main (int argc, char *argv[])
 	for(vector<myMaterial*>::iterator it = Materials.begin(); it != Materials.end(); ++it) {
 		delete (*it);
 	}
+	removeTree(root);
 	if (ambient != NULL)
 		delete ambient;
     return 0;

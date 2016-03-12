@@ -29,6 +29,7 @@ public:
     friend bool cmp_y(const BVH_Node *, const BVH_Node *);
     friend bool cmp_z(const BVH_Node *, const BVH_Node *);
     friend BVH_Node * createTree(std::vector<BVH_Node*> &, int, int, int);
+	friend void removeTree(BVH_Node* root);
 };
 
 inline bool cmp_x(const BVH_Node * n1, const BVH_Node * n2) {

@@ -49,3 +49,13 @@ BVH_Node * createTree(std::vector<BVH_Node*> & nodes, int start, int end, int di
 	node->setRight(createTree(nodes, mid, end, (dim + 1) % 3));
 	return node;
 }
+
+void removeTree(BVH_Node* root) {
+	if (root->left != NULL)
+		removeTree(root->left);
+	if (root->right != NULL)
+		removeTree(root->right);
+	delete root->surface;
+	delete root;
+	return;
+}
