@@ -72,14 +72,17 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, doub
 		mySurface * surface = NULL;
 		if (render_model == 1)
 			surface = (*it)->getSurface();
-		else if (render_model == 0)
-			surface = (*it)->getLeft()->getSurface();
-		if (surface->intersect(ray, current)) {
-			if (current > min_t && current < distance) {
-				intersection = surface;
-				distance = current;
-				if (ray_type == SHADOW_RAY)
-					break;
+		else if (render_model == 0) {
+			if (surface->intersect(ray, current))
+			if (current < distance) {
+				surface = (*it)->getLeft()->getSurface();
+				if (surface->intersect(ray, current))
+				if (current > min_t && current < distance) {
+					intersection = surface;
+					distance = current;
+					if (ray_type == SHADOW_RAY)
+						break;
+				}
 			}
 		}
 	}
