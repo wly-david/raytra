@@ -3,6 +3,8 @@
 #include"myMaterial.h"
 class mySurface
 {
+    mySurface(const mySurface& that);
+    mySurface& operator=(const mySurface& that);
 protected:
 	myMaterial * material;
 public:

@@ -388,9 +388,8 @@ int main (int argc, char *argv[])
     //assert (Lights.size () != 0); // make sure there are some lights
 	BVH_Node * root = createTree(BBoxes, 0, BBoxes.size(), 0);
 
-	camera.renderScene(root, BBoxes, Planes, Lights, ambient);
-	camera.writeImage(argv[2]);
-	
+	//camera.renderScene(root, BBoxes, Planes, Lights, ambient);
+	//camera.writeImage(argv[2]);
 	for(vector<mySurface*>::iterator it = Planes.begin(); it != Planes.end(); ++it) {
 		delete (*it);
 	}
@@ -400,7 +399,8 @@ int main (int argc, char *argv[])
 	for(vector<myMaterial*>::iterator it = Materials.begin(); it != Materials.end(); ++it) {
 		delete (*it);
 	}
-	//removeTree(root);
+	delete root;
+
 	if (ambient != NULL)
 		delete ambient;
     return 0;

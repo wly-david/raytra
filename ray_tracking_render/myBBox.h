@@ -6,6 +6,8 @@ class myBBox :
 {
 	myPoint min_, max_;
 	static const myVector norm[3];
+    myBBox(const myBBox& that);
+    myBBox& operator=(const myBBox& that);
 public:
 	myBBox(void) { }
 	myBBox(myPoint minP, myPoint maxP) :min_(minP), max_(maxP) { }
