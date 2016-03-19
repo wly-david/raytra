@@ -1,6 +1,5 @@
 #include<cstdlib>
 #include"hw1.h"
-#include<cassert>
 
 //#define IM_DEBUGGING
 
@@ -148,7 +147,7 @@ double getTokenAsFloat (string inString, int whichToken)
 // only use "correct" scene files.
 //
 //
-void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes, vector< mySurface * > &Planes, vector< myMaterial * > &Materials, vector< myLight * > &Lights, ALight * &ambient)
+void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes, vector< mySurface * > &Planes, vector< myMaterial * > &Materials, vector< s_light * > &SLights, vector<p_light*> &PLights, ALight * &ambient)
 {
     
     ifstream inFile(filname);    // open the file
@@ -267,8 +266,8 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 						r = getTokenAsFloat (line, 5);
 						g = getTokenAsFloat (line, 6);
 						b = getTokenAsFloat (line, 7);
-						p_light *pointLight = new p_light(myPoint(x,y,z), r, g, b);
-						Lights.push_back(pointLight);
+						p_light *pointLight = new p_light(myPoint(x,y,z), myVector(r, g, b));
+						PLights.push_back(pointLight);
                         break;
 					}
                     case 'd':   // directional light
@@ -282,6 +281,25 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 						g = getTokenAsFloat (line, 3);
 						b = getTokenAsFloat (line, 4);
 						ambient = new ALight(r, g, b);
+                        break;
+					}
+					case 's': {  // square light
+						double x, y, z, nx, ny, nz, ux, uy, uz, len, r, g, b;
+						x = getTokenAsFloat (line, 2);
+						y = getTokenAsFloat (line, 3);
+						z = getTokenAsFloat (line, 4);
+						nx = getTokenAsFloat (line, 5);
+						ny = getTokenAsFloat (line, 6);
+						nz = getTokenAsFloat (line, 7);
+						ux = getTokenAsFloat (line, 8);
+						uy = getTokenAsFloat (line, 9);
+						uz = getTokenAsFloat (line, 10);
+						len = getTokenAsFloat (line, 11);
+						r = getTokenAsFloat (line, 12);
+						g = getTokenAsFloat (line, 13);
+						b = getTokenAsFloat (line, 14);
+						s_light *squareLight = new s_light(myPoint(x,y,z), myVector(nx, ny, nz), myVector(ux, uy, uz), len, myVector(r, g, b));
+						SLights.push_back(squareLight);
                         break;
 					}
                 }
@@ -365,35 +383,38 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 
 int main (int argc, char *argv[])
 { 
-	int render_model = 3;
-    if (argc != 3 && argc != 4) {
+	int primary_num, shadow_num;
+    if (argc != 5) {
         // error condition: 
         cout << "usage: raytra scenefile outputimage" << endl;
 		return -1;
     }
-	else if (argc == 4) {
-		render_model = atoi(argv[3]);
-	}
+	primary_num = atoi(argv[3]);
+	shadow_num = atoi(argv[4]);
 	myCamera camera;
-	camera.setModel(render_model);
+	camera.setModel(primary_num, shadow_num);
 	ALight* ambient = NULL;
 	vector<BVH_Node*> BBoxes;
 	vector<mySurface*> Planes;
     vector<myMaterial*> Materials;
-	vector<myLight*> Lights;
-    parseSceneFile (argv[1], camera, BBoxes, Planes, Materials, Lights, ambient);
+	vector<s_light*> SLights;
+	vector<p_light*> PLights;
+    parseSceneFile (argv[1], camera, BBoxes, Planes, Materials, SLights, PLights, ambient);
     //assert (Materials.size () != 0); // make sure there are some materials
     //assert (Planes.size () != 0); // make sure there are some surfaces
     //assert (BBoxes.size () != 0); // make sure there are some BBoxes
     //assert (Lights.size () != 0); // make sure there are some lights
 	BVH_Node * root = createTree(BBoxes, 0, BBoxes.size(), 0);
 
-	//camera.renderScene(root, BBoxes, Planes, Lights, ambient);
-	//camera.writeImage(argv[2]);
+	camera.renderScene(root, BBoxes, Planes, PLights, SLights, ambient);
+	camera.writeImage(argv[2]);
 	for(vector<mySurface*>::iterator it = Planes.begin(); it != Planes.end(); ++it) {
 		delete (*it);
 	}
-	for(vector<myLight*>::iterator it = Lights.begin(); it != Lights.end(); ++it) {
+	for(vector<p_light*>::iterator it = PLights.begin(); it != PLights.end(); ++it) {
+		delete (*it);
+	}
+	for(vector<s_light*>::iterator it = SLights.begin(); it != SLights.end(); ++it) {
 		delete (*it);
 	}
 	for(vector<myMaterial*>::iterator it = Materials.begin(); it != Materials.end(); ++it) {

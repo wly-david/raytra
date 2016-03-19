@@ -120,7 +120,7 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, doub
 myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 								int recurse_limit, int ray_type, BVH_Node * root,
 								std::vector<BVH_Node*> & nodes, std::vector< mySurface * > &planes,
-								std::vector< myLight * > &lights, ALight * ambient) {
+								std::vector<p_light*> &PLights, std::vector< s_light * > &SLights, ALight * ambient) {
 	if (recurse_limit == 0)
 		return myVector(0,0,0);
 	
@@ -142,7 +142,7 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 		return myVector(0,0,0);	
 
 	myVector color(0,0,0);
-	for(std::vector<myLight*>::iterator it = lights.begin(); it != lights.end(); ++it) {
+	for(std::vector<p_light*>::iterator it = PLights.begin(); it != PLights.end(); ++it) {
 		myRay lightRay(intersectPos, ((*it)->getPos() - intersectPos));
 		bool shadowed = false;
 #ifndef shadowoff
@@ -177,7 +177,7 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 
 		myVector reflLight = recursive_L(reflRay,
 			0.0001, std::numeric_limits<double>::infinity(),
-			recurse_limit - 1, REFLECTION_RAY, root, nodes, planes, lights, ambient);
+			recurse_limit - 1, REFLECTION_RAY, root, nodes, planes, PLights, SLights, ambient);
 
 		myVector km = intersectedSurface->getMaterial()->getRefl();
 		color = color + myVector(km[0] * reflLight[0], km[1] * reflLight[1], km[2] * reflLight[2]);
@@ -186,7 +186,7 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 }
 
 void myCamera::renderScene (BVH_Node * root, std::vector<BVH_Node*> & nodes, std::vector< mySurface * > &surfaces,
-							std::vector< myLight * > &lights, ALight * ambient) {
+							 std::vector<p_light*> &PLights, std::vector< s_light * > &SLights, ALight * ambient) {
 	
     // std::cout << "rendering";    
     //int printProgress = ny * nx / 10.0;
@@ -196,9 +196,14 @@ void myCamera::renderScene (BVH_Node * root, std::vector<BVH_Node*> & nodes, std
             // print one of these for every 1/10th of the image:
             //if ((j * nx + i) % printProgress == 0)
             //    std::cout << ".";
-			myRay ray = generateRay(i, j);
-			myVector color = recursive_L(ray, 0, std::numeric_limits<double>::infinity(), REFL_TIMES, CAMERA_RAY, root, nodes, surfaces, lights, ambient);
-			setPixel (i, j, color[0], color[1], color[2]);
+			myVector color(0,0,0);
+			int N = primary_num * primary_num;
+			for(int p = 0; p < primary_num; p ++)
+				for (int q = 0; q < primary_num; q ++) {
+					myRay rayList = generateRay(i + (p + rand() / double(RAND_MAX)) / primary_num, j + (q + rand() / double(RAND_MAX)) / primary_num);
+					color += recursive_L(rayList, 0, std::numeric_limits<double>::infinity(), REFL_TIMES, CAMERA_RAY, root, nodes, surfaces, PLights, SLights, ambient);
+				} 
+			setPixel (i, j, color[0]/ N, color[1] / N, color[2] / N);
 		}
      }
 }

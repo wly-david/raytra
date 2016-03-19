@@ -1,6 +1,7 @@
 #include"myCamera.h"
 #include"myLight.h"
 #include"p_light.h"
+#include"s_light.h"
 #include"ALight.h"
 #include"mySphere.h"
 #include"myPlane.h"

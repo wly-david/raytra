@@ -27,6 +27,14 @@ public:
         return sqrt (ijk_[0] * ijk_[0] + ijk_[1] * ijk_[1] + ijk_[2] * ijk_[2]);
     }
 	
+	
+    myVector &operator+= (const myVector &v) {
+        ijk_[0] = ijk_[0] + v.ijk_[0];
+        ijk_[1] = ijk_[1] + v.ijk_[1];
+        ijk_[2] = ijk_[2] + v.ijk_[2];        
+        return *this;
+    }
+
     double operator[] (const int i) const;
 
 	~myVector(void) { }
@@ -43,7 +51,6 @@ public:
 };
 
 inline myVector crossProduct(const myVector &v1,const myVector &v2) {
-
 	double s1, s2 ,s3;
 	s1 = v1[1] * v2[2] - v1[2] * v2[1];
 	s2 = v1[2] * v2[0] - v1[0] * v2[2];

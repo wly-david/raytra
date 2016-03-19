@@ -1,7 +1,8 @@
 #pragma once
 
 #include "mySurface.h"
-#include "myLight.h"
+#include "p_light.h"
+#include "s_light.h"
 #include "ALight.h"
 #include "BVH_Node.h"
 
@@ -35,7 +36,9 @@ class myCamera
 
 	double l, r, t, b; // or just w,h
 
-	int render_model;
+	static const int render_model = 3;
+	int primary_num, shadow_num;
+
 	Array2D<Rgba> image;
 
 public:
@@ -46,10 +49,10 @@ public:
 
 	~myCamera(void) { }
 
-    myRay generateRay (const int i, const int j);
+    myRay generateRay (const double i, const double j);
     
 	void renderScene (BVH_Node *, std::vector<BVH_Node*> &,
-		std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
+		std::vector< mySurface * > &, std::vector< p_light * > &, std::vector< s_light * > &, ALight *);
 	
 	mySurface* findIntersection(const myRay &, const double, double &, const int,
 		std::vector<BVH_Node*> &);
@@ -62,7 +65,7 @@ public:
 
 	myVector recursive_L (const myRay &, double, double, int, int,
 		BVH_Node *, std::vector<BVH_Node*> &,
-		std::vector< mySurface * > &, std::vector< myLight * > &, ALight *);
+		std::vector< mySurface * > &, std::vector< p_light * > &, std::vector< s_light * > &, ALight *);
 
     void writeImage (const char *sceneFile);
     
@@ -74,15 +77,16 @@ public:
         px.a = 1.0;
     }
 	
-    void setModel (int m) {
-		render_model = m;
+    void setModel (int pn, int sn) {
+		primary_num = pn;
+		shadow_num = sn;
     }
 };
 
 
-inline myRay myCamera::generateRay (const int i, const int j) {
-	double u = this->l + (this->r - this->l) * (i + 0.5) / this->nx;
-	double v = this->t - (this->t - this->b) * (j + 0.5) / this->ny;
+inline myRay myCamera::generateRay (const double i, const double j) {
+	double u = this->l + (this->r - this->l) * i / this->nx;
+	double v = this->t - (this->t - this->b) * j / this->ny;
 	myVector dir = -this->d * this->w + u * this->u + v * this->v;
 	return myRay(this->eye, dir);
 }

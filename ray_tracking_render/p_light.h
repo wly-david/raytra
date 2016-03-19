@@ -8,11 +8,7 @@ class p_light : public myLight
 public:
 	p_light(void) { };
 
-	p_light(const myPoint &p, const double r, const double g, const double b) {
-		position = p;
-		color = myVector(r,g,b);
-		intensity = 1;
-	}
+	p_light(const myPoint &p, const myVector &rgb) : position(p), color(rgb), intensity(1) { }
 
 	void setPos(const myPoint &p) {
 		position = p;
@@ -27,7 +23,7 @@ public:
 	myVector virtual getColor() const{
 		return color;
 	}
-	myPoint virtual getPos() const {
+	myPoint virtual getPos(int i = 0, int j = 0) const {
 		return position;
 	}
 
