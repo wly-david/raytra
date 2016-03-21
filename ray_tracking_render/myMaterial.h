@@ -34,10 +34,10 @@ public:
 	}
 
 	myVector getPhongShading(
-    const myVector &L,    // unit vector to the light
-    const myVector &e,    // unit vector to the viewer
-    const myVector &N,    // unit surface normal
-    const myVector &L_color) const{
+		const myVector &L,	// unit vector to the light
+		const myVector &e,	// unit vector to the viewer
+		const myVector &N,	// unit surface normal
+		const myVector &L_color) const{
 		myVector ans(0,0,0);
 		double n_l = L * N;
 		if (n_l > 0) {

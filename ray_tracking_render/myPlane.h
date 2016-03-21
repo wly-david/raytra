@@ -6,8 +6,8 @@ class myPlane :
 {
 	myVector Norm; // normal
 	double d; // scalar
-    myPlane(const myPlane& that);
-    myPlane& operator=(const myPlane& that);
+	myPlane(const myPlane& that);
+	myPlane& operator=(const myPlane& that);
 public:
 	myPlane(void) { }
 	myPlane(const myVector dir, const double dis) : Norm(dir), d(dis) {

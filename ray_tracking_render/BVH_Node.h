@@ -8,8 +8,8 @@ class BVH_Node
 	BVH_Node * right;
 	myPoint center, min_, max_;
 	static int num;
-    BVH_Node(const BVH_Node& that);
-    BVH_Node& operator=(const BVH_Node& that);
+	BVH_Node(const BVH_Node& that);
+	BVH_Node& operator=(const BVH_Node& that);
 
 public:
 	BVH_Node(void) { }
@@ -29,10 +29,10 @@ public:
 		delete left;
 		delete right;
 	}
-    friend bool cmp_x(const BVH_Node *, const BVH_Node *);
-    friend bool cmp_y(const BVH_Node *, const BVH_Node *);
-    friend bool cmp_z(const BVH_Node *, const BVH_Node *);
-    friend BVH_Node * createTree(std::vector<BVH_Node*> &, int, int, int);
+	friend bool cmp_x(const BVH_Node *, const BVH_Node *);
+	friend bool cmp_y(const BVH_Node *, const BVH_Node *);
+	friend bool cmp_z(const BVH_Node *, const BVH_Node *);
+	friend BVH_Node * createTree(std::vector<BVH_Node*> &, int, int, int);
 	friend void removeTreeTest(BVH_Node* root);
 	friend void removeTree(BVH_Node* root);
 };

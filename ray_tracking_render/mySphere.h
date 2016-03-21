@@ -5,8 +5,8 @@ class mySphere : public mySurface
 {
 	myPoint O; // origin
 	double r; // radius
-    mySphere(const mySphere& that);
-    mySphere& operator=(const mySphere& that);
+	mySphere(const mySphere& that);
+	mySphere& operator=(const mySphere& that);
 public:
 	mySphere(void) { }
 	mySphere (const myPoint & pos,const double radius) : O(pos), r(radius){ }	

@@ -48,7 +48,7 @@ public:
 	ALight* ambient;
 	vector<BVH_Node*> nodes;
 	vector<mySurface*> planes;
-    vector<myMaterial*> Materials;
+	vector<myMaterial*> Materials;
 	vector<s_light*> SLights;
 	vector<p_light*> PLights;
 	BVH_Node * root;
@@ -59,8 +59,8 @@ public:
 
 	~myCamera(void) { }
 
-    myRay generateRay (const double i, const double j);
-    
+	myRay generateRay (const double i, const double j);
+	
 	void renderScene ();
 	
 	mySurface* findIntersection(const myRay &, const double, double &, const int,
@@ -72,25 +72,25 @@ public:
 	mySurface* findIntersection(const myRay &, const double, double &, const int, 
 		std::vector< mySurface * > &);
 
-	myVector myCamera:: generateShading(const myRay &, const myRay &, const mySurface *,
+	myVector generateShading(const myRay &, const myRay &, const mySurface *,
 									const myPoint &, const myVector &, const myVector &);
 
 	myVector recursive_L (const myRay &, double, double, int, int);
 
-    void writeImage (const char *sceneFile);
-    
-    void setPixel (int pix_x, int pix_y, float r, float g, float b) {
-        Rgba &px = image[pix_y][pix_x];
-        px.r = r;
-        px.g = g;
-        px.b = b;
-        px.a = 1.0;
-    }
+	void writeImage (const char *sceneFile);
 	
-    void setModel (int pn, int sn) {
+	void setPixel (int pix_x, int pix_y, float r, float g, float b) {
+		Rgba &px = image[pix_y][pix_x];
+		px.r = r;
+		px.g = g;
+		px.b = b;
+		px.a = 1.0;
+	}
+	
+	void setModel (int pn, int sn) {
 		primary_num = pn;
 		shadow_num = sn;
-    }
+	}
 };
 
 

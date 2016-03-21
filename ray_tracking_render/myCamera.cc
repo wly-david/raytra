@@ -20,16 +20,16 @@ void myCamera::init(myPoint p, myVector v, double d, double iw, double ih, int p
 	this->nx = pw;
 	this->ny = ph;
 
-    // set up the image:
-    // OpenEXR uses exceptions - catch and print on error
+	// set up the image:
+	// OpenEXR uses exceptions - catch and print on error
 
-    try {
-		image.resizeErase(ny, nx);    
-    }
-    catch (const std::exception &exc) {
-        std::cerr << exc.what() << std::endl;
-        return;
-    }
+	try {
+		image.resizeErase(ny, nx);
+	}
+	catch (const std::exception &exc) {
+		std::cerr << exc.what() << std::endl;
+		return;
+	}
 }
 
 mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, double &distance,
@@ -194,14 +194,14 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 
 void myCamera::renderScene () {
 	
-    // std::cout << "rendering";    
-    //int printProgress = ny * nx / 10.0;
+	// std::cout << "rendering";
+	//int printProgress = ny * nx / 10.0;
 	for(int j = 0; j < ny; j ++) {
 		for(int i = 0; i < nx; i ++) {
 			
-            // print one of these for every 1/10th of the image:
-            //if ((j * nx + i) % printProgress == 0)
-            //    std::cout << ".";
+	// print one of these for every 1/10th of the image:
+	//if ((j * nx + i) % printProgress == 0)
+	// std::cout << ".";
 			myVector color(0,0,0);
 			int N = primary_num * primary_num;
 			for(int p = 0; p < primary_num; p ++)
@@ -211,20 +211,20 @@ void myCamera::renderScene () {
 				} 
 			setPixel (i, j, color[0]/ N, color[1] / N, color[2] / N);
 		}
-     }
+	}
 }
 
 void myCamera::writeImage (const char *sceneFile) {
 	
-    // write the image data as an openEXR file
-    // OpenEXR uses exceptions - catch and print on error
-    try {
+	// write the image data as an openEXR file
+	// OpenEXR uses exceptions - catch and print on error
+	try {
 		RgbaOutputFile file (sceneFile, nx, ny, WRITE_RGBA);
 		file.setFrameBuffer (&image[0][0], 1, nx);
 		file.writePixels (ny);
-    }
-    catch (const std::exception &exc) {
-        std::cerr << exc.what() << std::endl;
-        return;
-    }
+	}
+	catch (const std::exception &exc) {
+		std::cerr << exc.what() << std::endl;
+		return;
+	}
 }

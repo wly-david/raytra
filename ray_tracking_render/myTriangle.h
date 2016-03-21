@@ -8,8 +8,8 @@ class myTriangle :
 	myPoint b;
 	myPoint c;
 	myVector Norm;
-    myTriangle(const myTriangle& that);
-    myTriangle& operator=(const myTriangle& that);
+	myTriangle(const myTriangle& that);
+	myTriangle& operator=(const myTriangle& that);
 public:
 	myTriangle(void) { }
 	myTriangle(const myPoint p1, const myPoint p2, const myPoint p3):a(p1), b(p2), c(p3) {

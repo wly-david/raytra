@@ -23,7 +23,7 @@ BVH_Node * createTree(std::vector<BVH_Node*> & nodes, int start, int end, int di
 		minp[i] = (*nodes.begin() + start)->min_[i];
 		maxp[i] = (*nodes.begin() + start)->max_[i];
 	}
-	for(std::vector<BVH_Node*>::iterator it = nodes.begin() + start; it !=  nodes.begin() + end; ++it) {
+	for(std::vector<BVH_Node*>::iterator it = nodes.begin() + start; it != nodes.begin() + end; ++it) {
 		for(int i = 0; i < 3; i ++) {
 			double tmp_min = (*it)->min_[i];
 			double tmp_max = (*it)->max_[i];
@@ -34,7 +34,7 @@ BVH_Node * createTree(std::vector<BVH_Node*> & nodes, int start, int end, int di
 		}
 	}
 	myBBox * bbox = new myBBox(myPoint(minp[0], minp[1], minp[2]), myPoint(maxp[0], maxp[1], maxp[2]));	
-	BVH_Node * node =  new BVH_Node(bbox);
+	BVH_Node * node = new BVH_Node(bbox);
 #ifdef BVH_DEBUGGING
 	std::cout << "num" << nodes[start]->num <<std::endl;
 	std::cout << "surfaces: " << end - start <<std::endl;
@@ -44,7 +44,7 @@ BVH_Node * createTree(std::vector<BVH_Node*> & nodes, int start, int end, int di
 	std::cout <<std::endl;
 #endif
 	int mid = (start + end) / 2;
-    std::nth_element(nodes.begin() + start, nodes.begin() + mid, nodes.begin() + end, comf[dim]);
+	std::nth_element(nodes.begin() + start, nodes.begin() + mid, nodes.begin() + end, comf[dim]);
 	node->setLeft(createTree(nodes, start, mid, (dim + 1) % 3));
 	node->setRight(createTree(nodes, mid, end, (dim + 1) % 3));
 	return node;
