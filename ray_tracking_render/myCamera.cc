@@ -173,12 +173,16 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 		color += generateShading(ray, (*it)->getPos(), intersectedSurface, intersectPos, norm, (*it)->getColor());
 	}
 	for(std::vector<s_light*>::iterator it = SLights.begin(); it != SLights.end(); ++it) {
+		myVector tmp(0,0,0);
+		int N = shadow_num * shadow_num;
 		for(int p = 0; p < shadow_num; p ++)
 		for (int q = 0; q < shadow_num; q ++) {
-			double i = (p + rand() / double(RAND_MAX)) / primary_num;
-			double j = (q + rand() / double(RAND_MAX)) / primary_num;
-			color += generateShading(ray, (*it)->getPos(i, j), intersectedSurface, intersectPos, norm, (*it)->getColor());
-		} 
+			double i = (p + rand() / double(RAND_MAX)) / shadow_num;
+			double j = (q + rand() / double(RAND_MAX)) / shadow_num;
+			tmp += generateShading(ray, (*it)->getPos(i, j), intersectedSurface, intersectPos, norm, (*it)->getColor());
+		}
+		tmp = 1.0 / N  * tmp;
+		color += tmp;
 	}
 	if (ambient != NULL) {
 		myVector kd = intersectedSurface->getMaterial()->getDiff();

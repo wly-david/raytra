@@ -24,7 +24,7 @@ public:
 		return color;
 	}
 	myPoint virtual getPos(double i = 0, double j = 0) const {
-		return origin + i / len * u + j /len * v;
+		return origin + i * len * u + j * len * v;
 	}
 
 	~s_light(void) { }
