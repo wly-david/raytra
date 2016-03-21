@@ -147,7 +147,7 @@ double getTokenAsFloat (string inString, int whichToken)
 // only use "correct" scene files.
 //
 //
-void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes, vector< mySurface * > &Planes, vector< myMaterial * > &Materials, vector< s_light * > &SLights, vector<p_light*> &PLights, ALight * &ambient)
+void parseSceneFile (char *filname, myCamera & camera)
 {
     
     ifstream inFile(filname);    // open the file
@@ -185,7 +185,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 				myBBox *bbox = sphere->generateBBox();
 				BVH_Node *leaf = new BVH_Node(bbox);
 				leaf->setLeft(object);
-				BBoxes.push_back(leaf);
+				camera.nodes.push_back(leaf);
 #ifdef IM_DEBUGGING
                 // if we're debugging, show what we got:
                 cout << "got a sphere with ";
@@ -211,7 +211,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 				myBBox *bbox = triangle->generateBBox();
 				BVH_Node *leaf = new BVH_Node(bbox);
 				leaf->setLeft(object);
-				BBoxes.push_back(leaf);
+				camera.nodes.push_back(leaf);
 				break;
 			}
             case 'p': {  // plane
@@ -223,7 +223,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 				myPlane *plane = new myPlane(myVector(nx, ny, nz), d);
 				assert(lastMaterialLoaded != NULL);
 				plane->setMaterial(lastMaterialLoaded);
-				Planes.push_back(plane);
+				camera.planes.push_back(plane);
                 break;
 			}
             // camera:
@@ -267,20 +267,21 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 						g = getTokenAsFloat (line, 6);
 						b = getTokenAsFloat (line, 7);
 						p_light *pointLight = new p_light(myPoint(x,y,z), myVector(r, g, b));
-						PLights.push_back(pointLight);
+						camera.PLights.push_back(pointLight);
                         break;
 					}
                     case 'd':   // directional light
                         break;
                     case 'a':   {// ambient light
-						if (ambient != NULL) {
+						if (camera.ambient != NULL) {
 							cerr << "scene file error: at most ONE ambient light need to be defined." << endl;
+							delete camera.ambient;
 						}
 						double r, g, b;
 						r = getTokenAsFloat (line, 2);
 						g = getTokenAsFloat (line, 3);
 						b = getTokenAsFloat (line, 4);
-						ambient = new ALight(r, g, b);
+						camera.ambient = new ALight(r, g, b);
                         break;
 					}
 					case 's': {  // square light
@@ -299,7 +300,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 						g = getTokenAsFloat (line, 13);
 						b = getTokenAsFloat (line, 14);
 						s_light *squareLight = new s_light(myPoint(x,y,z), myVector(nx, ny, nz), myVector(ux, uy, uz), len, myVector(r, g, b));
-						SLights.push_back(squareLight);
+						camera.SLights.push_back(squareLight);
                         break;
 					}
                 }
@@ -323,7 +324,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
                 ig = getTokenAsFloat (line, 9);
                 ib = getTokenAsFloat (line, 10);
 				lastMaterialLoaded = new myMaterial(myVector(dr,dg,db), myVector(sr,sg,sb), myVector(ir,ig,ib), r);
-				Materials.push_back(lastMaterialLoaded);
+				camera.Materials.push_back(lastMaterialLoaded);
                 break;
 			}
 			case 'w': {
@@ -351,7 +352,7 @@ void parseSceneFile (char *filname, myCamera & camera, vector<BVH_Node*> &BBoxes
 						myBBox *bbox = triangle->generateBBox();
 						BVH_Node *leaf = new BVH_Node(bbox);
 						leaf->setLeft(object);
-						BBoxes.push_back(leaf);
+						camera.nodes.push_back(leaf);
 					}
 				}
 			}
@@ -393,36 +394,34 @@ int main (int argc, char *argv[])
 	shadow_num = atoi(argv[4]);
 	myCamera camera;
 	camera.setModel(primary_num, shadow_num);
-	ALight* ambient = NULL;
-	vector<BVH_Node*> BBoxes;
-	vector<mySurface*> Planes;
-    vector<myMaterial*> Materials;
-	vector<s_light*> SLights;
-	vector<p_light*> PLights;
-    parseSceneFile (argv[1], camera, BBoxes, Planes, Materials, SLights, PLights, ambient);
+    parseSceneFile (argv[1], camera);
     //assert (Materials.size () != 0); // make sure there are some materials
     //assert (Planes.size () != 0); // make sure there are some surfaces
     //assert (BBoxes.size () != 0); // make sure there are some BBoxes
     //assert (Lights.size () != 0); // make sure there are some lights
-	BVH_Node * root = createTree(BBoxes, 0, BBoxes.size(), 0);
+	camera.root = createTree(camera.nodes, 0, camera.nodes.size(), 0);
 
-	camera.renderScene(root, BBoxes, Planes, PLights, SLights, ambient);
+	camera.renderScene();
 	camera.writeImage(argv[2]);
-	for(vector<mySurface*>::iterator it = Planes.begin(); it != Planes.end(); ++it) {
-		delete (*it);
-	}
-	for(vector<p_light*>::iterator it = PLights.begin(); it != PLights.end(); ++it) {
-		delete (*it);
-	}
-	for(vector<s_light*>::iterator it = SLights.begin(); it != SLights.end(); ++it) {
-		delete (*it);
-	}
-	for(vector<myMaterial*>::iterator it = Materials.begin(); it != Materials.end(); ++it) {
-		delete (*it);
-	}
-	delete root;
 
-	if (ambient != NULL)
-		delete ambient;
+	for(vector<mySurface*>::iterator it = camera.planes.begin(); it != camera.planes.end(); ++it)
+		delete (*it);
+	camera.planes.clear();
+	for(vector<p_light*>::iterator it = camera.PLights.begin(); it != camera.PLights.end(); ++it)
+		delete (*it);
+	camera.PLights.clear();
+	for(vector<s_light*>::iterator it = camera.SLights.begin(); it != camera.SLights.end(); ++it)
+		delete (*it);
+	camera.SLights.clear();
+	for(vector<myMaterial*>::iterator it = camera.Materials.begin(); it != camera.Materials.end(); ++it)
+		delete (*it);
+	camera.Materials.clear();
+	delete camera.root;
+	camera.nodes.clear();
+	camera.root = NULL;
+	if (camera.ambient != NULL) {
+		delete camera.ambient;
+		camera.ambient = NULL;
+	}
     return 0;
 }

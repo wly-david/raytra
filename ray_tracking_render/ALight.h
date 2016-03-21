@@ -6,9 +6,7 @@ class ALight
 public:
 	ALight(void) { }
 	
-	ALight( const double r, const double g, const double b) {
-		color = myVector(r,g,b);
-	}
+	ALight( const double r, const double g, const double b) : color(r,g,b) { }
 	
 	myVector getColor() const{
 		return color;

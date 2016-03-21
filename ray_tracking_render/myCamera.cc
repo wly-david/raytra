@@ -117,16 +117,43 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, doub
 	return intersection;
 }
 
+myVector myCamera:: generateShading(const myRay &ray, const myRay &lightRay, const mySurface *intersectedSurface,
+									const myPoint &intersectPos, const myVector &norm, const myVector &color) {
+
+		bool shadowed = false;
+#ifndef shadowoff
+		double dis2light = (lightRay.getOrigin() - intersectPos) * lightRay.getDir();
+		double dis2obs = dis2light;
+		mySurface* obstruction = (render_model < 2) ? 
+			findIntersection(lightRay, 0.0001, dis2obs, SHADOW_RAY, nodes) : 
+			findIntersection(lightRay, 0.0001, dis2obs, SHADOW_RAY, root);
+		if (planes.size() > 0) {
+			mySurface* plane = findIntersection(lightRay, 0.0001, dis2obs, SHADOW_RAY, planes);
+			if (plane != NULL)
+				obstruction = plane;
+		}
+		shadowed = (obstruction != NULL);
+#endif
+		if (!shadowed)
+			return intersectedSurface->getMaterial()->getPhongShading(
+				lightRay.getDir(),
+				(-1) * ray.getDir(),
+				norm,
+				color);
+		else
+			return myVector(0,0,0);
+
+}
+
+
 myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
-								int recurse_limit, int ray_type, BVH_Node * root,
-								std::vector<BVH_Node*> & nodes, std::vector< mySurface * > &planes,
-								std::vector<p_light*> &PLights, std::vector< s_light * > &SLights, ALight * ambient) {
+								int recurse_limit, int ray_type) {
 	if (recurse_limit == 0)
 		return myVector(0,0,0);
 	
 	double distance = max_t;
 	mySurface* intersectedSurface = (render_model < 2) ? 
-		findIntersection(ray, min_t, distance, ray_type,  nodes) : 
+		findIntersection(ray, min_t, distance, ray_type, nodes) : 
 		findIntersection(ray, min_t, distance, ray_type, root);
 	if (planes.size() > 0) {
 		mySurface* plane = findIntersection(ray, min_t, distance, ray_type, planes);
@@ -144,27 +171,7 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 	myVector color(0,0,0);
 	for(std::vector<p_light*>::iterator it = PLights.begin(); it != PLights.end(); ++it) {
 		myRay lightRay(intersectPos, ((*it)->getPos() - intersectPos));
-		bool shadowed = false;
-#ifndef shadowoff
-		double dis2light = ((*it)->getPos() - intersectPos) * lightRay.getDir();
-		double dis2obs = dis2light;
-		mySurface* obstruction = (render_model < 2) ? 
-			findIntersection(lightRay, 0.0001, dis2obs, SHADOW_RAY, nodes) : 
-			findIntersection(lightRay, 0.0001, dis2obs, SHADOW_RAY, root);
-		if (planes.size() > 0) {
-			mySurface* plane = findIntersection(lightRay, 0.0001, dis2obs, SHADOW_RAY, planes);
-			if (plane != NULL)
-				obstruction = plane;
-		}
-		shadowed = (obstruction != NULL);
-#endif
-		if (!shadowed){
-			color = color + intersectedSurface->getMaterial()->getPhongShading(
-				lightRay.getDir(),
-				(-1) * ray.getDir(),
-				norm,
-				(*it)->getColor());
-		}
+		color += generateShading(ray, lightRay, intersectedSurface, intersectPos, norm, (*it)->getColor());
 	}
 	if (ambient != NULL) {
 		myVector kd = intersectedSurface->getMaterial()->getDiff();
@@ -177,7 +184,7 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 
 		myVector reflLight = recursive_L(reflRay,
 			0.0001, std::numeric_limits<double>::infinity(),
-			recurse_limit - 1, REFLECTION_RAY, root, nodes, planes, PLights, SLights, ambient);
+			recurse_limit - 1, REFLECTION_RAY);
 
 		myVector km = intersectedSurface->getMaterial()->getRefl();
 		color = color + myVector(km[0] * reflLight[0], km[1] * reflLight[1], km[2] * reflLight[2]);
@@ -185,8 +192,7 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 	return color;
 }
 
-void myCamera::renderScene (BVH_Node * root, std::vector<BVH_Node*> & nodes, std::vector< mySurface * > &surfaces,
-							 std::vector<p_light*> &PLights, std::vector< s_light * > &SLights, ALight * ambient) {
+void myCamera::renderScene () {
 	
     // std::cout << "rendering";    
     //int printProgress = ny * nx / 10.0;
@@ -201,7 +207,7 @@ void myCamera::renderScene (BVH_Node * root, std::vector<BVH_Node*> & nodes, std
 			for(int p = 0; p < primary_num; p ++)
 				for (int q = 0; q < primary_num; q ++) {
 					myRay rayList = generateRay(i + (p + rand() / double(RAND_MAX)) / primary_num, j + (q + rand() / double(RAND_MAX)) / primary_num);
-					color += recursive_L(rayList, 0, std::numeric_limits<double>::infinity(), REFL_TIMES, CAMERA_RAY, root, nodes, surfaces, PLights, SLights, ambient);
+					color += recursive_L(rayList, 0, std::numeric_limits<double>::infinity(), REFL_TIMES, CAMERA_RAY);
 				} 
 			setPixel (i, j, color[0]/ N, color[1] / N, color[2] / N);
 		}

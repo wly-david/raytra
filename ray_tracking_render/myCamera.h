@@ -11,6 +11,7 @@
 #include <ImfMatrixAttribute.h>
 #include <ImfArray.h>
 #include <vector>
+using std::vector;
 
 #ifndef REFL_TIMES
 	#define REFL_TIMES 20
@@ -43,7 +44,16 @@ class myCamera
 
 public:
 	// if film is centered
-	myCamera(void) { }
+	
+	ALight* ambient;
+	vector<BVH_Node*> nodes;
+	vector<mySurface*> planes;
+    vector<myMaterial*> Materials;
+	vector<s_light*> SLights;
+	vector<p_light*> PLights;
+	BVH_Node * root;
+	
+	myCamera(void) : ambient(NULL), root(NULL) { }
 
 	void init(myPoint, myVector, double, double, double, int, int);
 
@@ -51,8 +61,7 @@ public:
 
     myRay generateRay (const double i, const double j);
     
-	void renderScene (BVH_Node *, std::vector<BVH_Node*> &,
-		std::vector< mySurface * > &, std::vector< p_light * > &, std::vector< s_light * > &, ALight *);
+	void renderScene ();
 	
 	mySurface* findIntersection(const myRay &, const double, double &, const int,
 		std::vector<BVH_Node*> &);
@@ -63,9 +72,10 @@ public:
 	mySurface* findIntersection(const myRay &, const double, double &, const int, 
 		std::vector< mySurface * > &);
 
-	myVector recursive_L (const myRay &, double, double, int, int,
-		BVH_Node *, std::vector<BVH_Node*> &,
-		std::vector< mySurface * > &, std::vector< p_light * > &, std::vector< s_light * > &, ALight *);
+	myVector myCamera:: generateShading(const myRay &, const myRay &, const mySurface *,
+									const myPoint &, const myVector &, const myVector &);
+
+	myVector recursive_L (const myRay &, double, double, int, int);
 
     void writeImage (const char *sceneFile);
     
