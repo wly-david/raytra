@@ -175,11 +175,16 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 	for(std::vector<s_light*>::iterator it = SLights.begin(); it != SLights.end(); ++it) {
 		myVector tmp(0,0,0);
 		int N = shadow_num * shadow_num;
-		for(int p = 0; p < shadow_num; p ++)
-		for (int q = 0; q < shadow_num; q ++) {
-			double i = (p + rand() / double(RAND_MAX)) / shadow_num;
-			double j = (q + rand() / double(RAND_MAX)) / shadow_num;
-			tmp += generateShading(ray, (*it)->getPos(i, j), intersectedSurface, intersectPos, norm, (*it)->getColor());
+		if (shadow_num ==1) {
+			tmp += generateShading(ray, (*it)->getPos(), intersectedSurface, intersectPos, norm, (*it)->getColor());
+		}
+		else {
+			for(int p = 0; p < shadow_num; p ++)
+			for (int q = 0; q < shadow_num; q ++) {
+				double i = (p + rand() / double(RAND_MAX)) / shadow_num;
+				double j = (q + rand() / double(RAND_MAX)) / shadow_num;
+				tmp += generateShading(ray, (*it)->getPos(i, j), intersectedSurface, intersectPos, norm, (*it)->getColor());
+			}
 		}
 		tmp = 1.0 / N  * tmp;
 		color += tmp;
@@ -215,11 +220,17 @@ void myCamera::renderScene () {
 	// std::cout << ".";
 			myVector color(0,0,0);
 			int N = primary_num * primary_num;
-			for(int p = 0; p < primary_num; p ++)
+			if (primary_num == 1) {
+				myRay rayList = generateRay(i + 0.5, j + 0.5);
+				color += recursive_L(rayList, 0, std::numeric_limits<double>::infinity(), REFL_TIMES, CAMERA_RAY);
+			}
+			else {
+				for(int p = 0; p < primary_num; p ++)
 				for (int q = 0; q < primary_num; q ++) {
 					myRay rayList = generateRay(i + (p + rand() / double(RAND_MAX)) / primary_num, j + (q + rand() / double(RAND_MAX)) / primary_num);
 					color += recursive_L(rayList, 0, std::numeric_limits<double>::infinity(), REFL_TIMES, CAMERA_RAY);
-				} 
+				}
+			}
 			setPixel (i, j, color[0]/ N, color[1] / N, color[2] / N);
 		}
 	}
