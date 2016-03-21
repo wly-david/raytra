@@ -7,7 +7,7 @@ public:
 	myLight(void) { }
 	
 	myVector virtual getColor() const =0;
-	myPoint virtual getPos(int i, int j) const =0;
+	myPoint virtual getPos(double i, double j) const =0;
 	virtual ~myLight(void) { }
 };
 

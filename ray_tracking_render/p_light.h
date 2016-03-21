@@ -23,7 +23,7 @@ public:
 	myVector virtual getColor() const{
 		return color;
 	}
-	myPoint virtual getPos(int i = 0, int j = 0) const {
+	myPoint virtual getPos(double i = 0, double j = 0) const {
 		return position;
 	}
 

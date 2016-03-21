@@ -72,7 +72,7 @@ public:
 	mySurface* findIntersection(const myRay &, const double, double &, const int, 
 		std::vector< mySurface * > &);
 
-	myVector generateShading(const myRay &, const myRay &, const mySurface *,
+	myVector generateShading(const myRay &, const myPoint &, const mySurface *,
 									const myPoint &, const myVector &, const myVector &);
 
 	myVector recursive_L (const myRay &, double, double, int, int);
