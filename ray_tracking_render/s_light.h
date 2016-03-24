@@ -18,6 +18,7 @@ public:
 		u = u_;
 		u.normalize();
 		v = crossProduct(n, u_).normalize();
+		origin = p + (-0.5) * len * u + (-0.5) * len * v;
 	}
 	
 	myVector virtual getColor() const{
