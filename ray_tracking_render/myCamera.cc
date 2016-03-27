@@ -36,25 +36,26 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, doub
 									  const int ray_type,
 									  BVH_Node * root){
 	double current;
-	mySurface * surface = root->getSurface();
+	mySurface * surface = root->surface;
 	if (!surface->intersect(ray, current))
 		return NULL;
 	if (current >= distance)
 		return NULL;
-	if (root->getRight() != NULL) {
-		mySurface * left_s = findIntersection(ray, min_t, distance, ray_type, root->getLeft());
+	if (root->right != NULL) {
+		mySurface * left_s = findIntersection(ray, min_t, distance, ray_type, root->left);
+		if (ray_type == SHADOW_RAY && left_s != NULL) {
+			return left_s;
+		}
 		double right_d = distance;
-		mySurface * right_s = findIntersection(ray, min_t, right_d, ray_type, root->getRight());
+		mySurface * right_s = findIntersection(ray, min_t, right_d, ray_type, root->right);
 		if (right_d < distance) {
 			distance = right_d;
 			return right_s;
 		}
-		else {
-			return left_s;
-		}
+		return left_s;
 	}
-	if (render_model == 3 && root->getLeft() != NULL) {
-		return findIntersection(ray, min_t, distance, ray_type, root->getLeft());
+	if (render_model == 3 && root->left != NULL) {
+		return findIntersection(ray, min_t, distance, ray_type, root->left);
 	}
 	if (current > min_t && current < distance) {
 		distance = current;
@@ -71,7 +72,7 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, doub
 		double current;
 		mySurface * surface = NULL;
 		if (render_model == 1) {
-			surface = (*it)->getSurface();
+			surface = (*it)->surface;
 			if (surface->intersect(ray, current))
 			if (current > min_t && current < distance) {
 				intersection = surface;
@@ -81,10 +82,10 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, doub
 			}
 		}
 		else if (render_model == 0) {
-			surface = (*it)->getSurface();
+			surface = (*it)->surface;
 			if (surface->intersect(ray, current))
 			if (current < distance) {
-				surface = (*it)->getLeft()->getSurface();
+				surface = (*it)->left->surface;
 				if (surface->intersect(ray, current))
 				if (current > min_t && current < distance) {
 					intersection = surface;

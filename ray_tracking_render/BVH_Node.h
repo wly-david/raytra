@@ -3,15 +3,15 @@
 #include<vector>
 class BVH_Node
 {
-	mySurface * surface;
-	BVH_Node * left;
-	BVH_Node * right;
 	myPoint center, min_, max_;
 	static int num;
 	BVH_Node(const BVH_Node& that);
 	BVH_Node& operator=(const BVH_Node& that);
 
 public:
+	mySurface * surface;
+	BVH_Node * left;
+	BVH_Node * right;
 	BVH_Node(void) { }
 	BVH_Node(mySurface * s) : surface(s), left(NULL), right(NULL) { }
 	BVH_Node(myBBox * b) : surface(b), left(NULL), right(NULL) {
@@ -21,9 +21,9 @@ public:
 	}
 	void setLeft(BVH_Node * l) { left = l; }
 	void setRight(BVH_Node * r) { right = r; }
-	BVH_Node * getLeft() const { return left; }
-	BVH_Node * getRight() const { return right; }
-	mySurface * getSurface() const { return surface; }
+	// BVH_Node * getLeft() const { return left; }
+	// BVH_Node * getRight() const { return right; }
+	// mySurface * getSurface() const { return surface; }
 	~BVH_Node(void) {
 		delete surface;
 		delete left;
