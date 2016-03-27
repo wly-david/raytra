@@ -14,7 +14,7 @@
 using std::vector;
 
 #ifndef REFL_TIMES
-	#define REFL_TIMES 20
+	#define REFL_TIMES 10
 #endif
 #define SHADOW_RAY 1
 #define CAMERA_RAY 0
@@ -72,8 +72,8 @@ public:
 	mySurface* findIntersection(const myRay &, const double, double &, const int, 
 		std::vector< mySurface * > &);
 
-	myVector generateShading(const myRay &, const myPoint &, const mySurface *,
-									const myPoint &, const myVector &, const myVector &);
+	myVector generateShading(const myRay &, const myRay &, const double,
+							const myVector &, const myMaterial *, const myVector &);
 
 	myVector recursive_L (const myRay &, double, double, int, int);
 

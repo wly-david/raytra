@@ -117,12 +117,11 @@ mySurface* myCamera::findIntersection(const myRay &ray, const double min_t, doub
 	return intersection;
 }
 
-myVector myCamera:: generateShading(const myRay &ray, const myPoint &lightPos, const mySurface *intersectedSurface,
-									const myPoint &intersectPos, const myVector &norm, const myVector &color) {
-		myRay lightRay(intersectPos, lightPos - intersectPos);
+myVector myCamera:: generateShading(const myRay &ray, const myRay &lightRay, const double dis2light,
+									const myVector &norm, const myMaterial *material, const myVector &color) {
+		
 		bool shadowed = false;
 #ifndef shadowoff
-		double dis2light = (lightPos - intersectPos) * lightRay.getDir();
 		double dis2obs = dis2light;
 		mySurface* obstruction = (render_model < 2) ? 
 			findIntersection(lightRay, 0.0001, dis2obs, SHADOW_RAY, nodes) : 
@@ -134,12 +133,14 @@ myVector myCamera:: generateShading(const myRay &ray, const myPoint &lightPos, c
 		}
 		shadowed = (obstruction != NULL);
 #endif
-		if (!shadowed)
-			return intersectedSurface->getMaterial()->getPhongShading(
+		if (!shadowed) {
+			double weight = 1.0 / ((1 + dis2light) * (1 + dis2light));
+			return material->getPhongShading(
 				lightRay.getDir(),
 				(-1) * ray.getDir(),
 				norm,
-				color);
+				weight * color);
+		}
 		else
 			return myVector(0,0,0);
 
@@ -165,25 +166,41 @@ myVector myCamera::recursive_L (const myRay &ray, double min_t, double max_t,
 
 	myPoint intersectPos = ray.getOrigin() + distance * ray.getDir();
 	myVector norm = intersectedSurface->getNorm(intersectPos);
+	const myMaterial * material = intersectedSurface->getMaterial();
 	if (norm * ray.getDir() > 0)
 		return myVector(0,0,0);	
 
 	myVector color(0,0,0);
 	for(std::vector<p_light*>::iterator it = PLights.begin(); it != PLights.end(); ++it) {
-		color += generateShading(ray, (*it)->getPos(), intersectedSurface, intersectPos, norm, (*it)->getColor());
+		myPoint lightPos = (*it)->getPos();
+		myRay lightRay(intersectPos, lightPos - intersectPos);
+		double dis2light = (lightPos - intersectPos) * lightRay.getDir();
+		color += generateShading(ray, lightRay, dis2light, norm, material, (*it)->getColor());
 	}
 	for(std::vector<s_light*>::iterator it = SLights.begin(); it != SLights.end(); ++it) {
 		myVector tmp(0,0,0);
 		int N = shadow_num * shadow_num;
 		if (shadow_num ==1) {
-			tmp += generateShading(ray, (*it)->getPos(), intersectedSurface, intersectPos, norm, (*it)->getColor());
+			myPoint lightPos = (*it)->getPos();
+			myRay lightRay(intersectPos, lightPos - intersectPos);
+			double weight = -(lightRay.getDir() * (*it)->getNorm());
+			if (weight <= 0)
+				continue;
+			double dis2light = (lightPos - intersectPos) * lightRay.getDir();
+			tmp += generateShading(ray, lightRay, dis2light, norm, material, weight * (*it)->getColor());
 		}
 		else {
 			for(int p = 0; p < shadow_num; p ++)
 			for (int q = 0; q < shadow_num; q ++) {
 				double i = (p + rand() / double(RAND_MAX)) / shadow_num;
 				double j = (q + rand() / double(RAND_MAX)) / shadow_num;
-				tmp += generateShading(ray, (*it)->getPos(i, j), intersectedSurface, intersectPos, norm, (*it)->getColor());
+				myPoint lightPos = (*it)->getPos(i, j);
+				myRay lightRay(intersectPos, lightPos - intersectPos);
+				double weight = -(lightRay.getDir() * (*it)->getNorm());
+				if (weight <= 0)
+					continue;
+				double dis2light = (lightPos - intersectPos) * lightRay.getDir();
+				tmp += generateShading(ray, lightRay, dis2light, norm, material, weight * (*it)->getColor());
 			}
 		}
 		tmp = 1.0 / N  * tmp;

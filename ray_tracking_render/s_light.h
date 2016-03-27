@@ -24,10 +24,12 @@ public:
 	myVector virtual getColor() const{
 		return color;
 	}
-	myPoint virtual getPos(double i = 0, double j = 0) const {
+	myPoint virtual getPos(double i = 0.5, double j = 0.5) const {
 		return origin + i * len * u + j * len * v;
 	}
-
+	myVector getNorm() const {
+		return norm;
+	}
 	~s_light(void) { }
 };
 

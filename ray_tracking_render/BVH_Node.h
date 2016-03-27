@@ -17,7 +17,7 @@ public:
 	BVH_Node(myBBox * b) : surface(b), left(NULL), right(NULL) {
 		min_ = b->getMin();
 		max_= b->getMax();
-		center = myPoint((min_[0] + max_[0])/2, (min_[1] + max_[1])/2, (min_[1] + max_[1])/2);
+		center = myPoint((min_[0] + max_[0])/2, (min_[1] + max_[1])/2, (min_[2] + max_[2])/2);
 	}
 	void setLeft(BVH_Node * l) { left = l; }
 	void setRight(BVH_Node * r) { right = r; }
